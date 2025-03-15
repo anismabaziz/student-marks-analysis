@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from supabase_client import supabase
 from flask_cors import CORS
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -37,6 +38,64 @@ def get_students():
             "mappings": mappings_response.data,
         }
     )
+
+
+@app.route("/students/stats", methods=["GET"])
+def get_stats():
+    column = request.args.get("column")
+    if not column:
+        return jsonify({"error": "Please provide a column name"}), 400
+
+    all_records = []
+    batch_size = 1000
+    start = 0
+
+    while True:
+        response = (
+            supabase.table("analysis_student_grades_usthb")
+            .select("*")
+            .range(start, start + batch_size - 1)
+            .execute()
+        )
+
+        if response.data:
+            all_records.extend(response.data)
+            if len(response.data) < batch_size:
+                break
+            start += batch_size
+        else:
+            break
+
+    data = pd.DataFrame(all_records)
+    all_students = len(data)
+
+    if column not in data.columns:
+        return jsonify({"error": f"Column '{column}' not found"}), 400
+
+    avg_grade = data[column].mean()
+    max_grade = data[column].max()
+    min_grade = data[column].min()
+    passing_students = data.loc[data[column] >= 10, column].count()
+    passing_rate = (passing_students / all_students) * 100
+
+    return jsonify(
+        {
+            "column": column,
+            "average_grade": round(avg_grade, 2),
+            "max_grade": max_grade,
+            "min_grade": min_grade,
+            "passing_rate": round(passing_rate, 2),
+        }
+    )
+
+
+@app.route("/students/mappings", methods=["GET"])
+def get_mappings():
+    response = (
+        supabase.table("analysis_student_grades_usthb_mappings").select("*").execute()
+    )
+
+    return jsonify({"mappings": response.data})
 
 
 if __name__ == "__main__":
