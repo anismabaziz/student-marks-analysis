@@ -98,5 +98,38 @@ def get_mappings():
     return jsonify({"mappings": response.data})
 
 
+@app.route("/students/top-performing", methods=["GET"])
+def get_top_performing_students():
+    column = request.args.get("column")
+    if not column:
+        return jsonify({"error": "Please provide a column name"}), 400
+
+    response = (
+        supabase.table("analysis_student_grades_usthb")
+        .select("*")
+        .order(column=column, desc=True)
+        .limit(5)
+        .execute()
+    )
+    return jsonify({"column": column, "data": response.data})
+
+
+@app.route("/students/lowest-performing", methods=["GET"])
+def get_lowest_perfoming_students():
+    column = request.args.get("column")
+    if not column:
+        return jsonify({"error": "Please provide a column name"}), 400
+
+    response = (
+        supabase.table("analysis_student_grades_usthb")
+        .select("*")
+        .neq(column, 0)
+        .order(column, desc=False)
+        .limit(5)
+        .execute()
+    )
+    return jsonify({"column": column, "data": response.data})
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=3000)

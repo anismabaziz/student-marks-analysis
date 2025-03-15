@@ -48,8 +48,6 @@ export default function ClassStats() {
     };
   });
 
-  console.log(selectMappings);
-
   return (
     <Card>
       <CardHeader className="flex items-center justify-between">
@@ -76,7 +74,10 @@ export default function ClassStats() {
         <ClassStatsCard
           metric={"Average"}
           value={stats_data.average_grade}
-          quality={module}
+          quality={
+            mappings_data.mappings.find((mapping) => mapping.db_name == module)
+              .table_name
+          }
         />
         <ClassStatsCard
           metric={"Highest"}

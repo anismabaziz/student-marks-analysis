@@ -1,4 +1,6 @@
+import AllStudents from "./all-students";
 import ClassStats from "./class-stats";
+import StudentsPerformance from "./students-performance";
 
 export default function Dashboard() {
   return (
@@ -6,7 +8,9 @@ export default function Dashboard() {
       <h1 className="text-3xl font-bold">Student Grades Dashboard</h1>
       <div className="grid grid-cols-2 gap-4">
         <ClassStats />
+        <StudentsPerformance />
       </div>
+      <AllStudents />
     </div>
   );
 }
