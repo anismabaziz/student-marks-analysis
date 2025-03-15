@@ -11,7 +11,7 @@ CORS(app)
 def get_students():
     query = request.args.get("query")
     page = int(request.args.get("page", 1))
-    limit = int(request.args.get("limit", 20))
+    limit = int(request.args.get("limit", 10))
 
     start = (page - 1) * limit
     end = start + limit - 1

@@ -32,6 +32,13 @@ export const columns: ColumnDef<StudentData>[] = [
     accessorKey: "code",
     header: "Code",
   },
+  { accessorKey: "asd1", header: "Algorithmique 1" },
+  { accessorKey: "algebre1", header: "Algebre 1" },
+  { accessorKey: "analyse1", header: "Analyse 1" },
+  { accessorKey: "sm1", header: "Structure Machine 1" },
+  { accessorKey: "phy1", header: "Physique 1" },
+  { accessorKey: "est", header: "Terminologie" },
+  { accessorKey: "le1", header: "Langue Etranger" },
   {
     accessorKey: "moyenne_semestre",
     header: "Moyenne Semestre",
