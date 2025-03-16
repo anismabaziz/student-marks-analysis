@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from supabase_client import supabase
 from flask_cors import CORS
 import pandas as pd
+import numpy as np
 
 app = Flask(__name__)
 
@@ -129,6 +130,41 @@ def get_lowest_perfoming_students():
         .execute()
     )
     return jsonify({"column": column, "data": response.data})
+
+
+@app.route("/students/grades-distribution")
+def get_grades_distribution():
+    all_records = []
+    batch_size = 1000
+    start = 0
+
+    while True:
+        response = (
+            supabase.table("analysis_student_grades_usthb")
+            .select("*")
+            .range(start, start + batch_size - 1)
+            .execute()
+        )
+
+        if response.data:
+            all_records.extend(response.data)
+            if len(response.data) < batch_size:
+                break
+            start += batch_size
+        else:
+            break
+
+    data = pd.DataFrame(all_records)
+    moyennes_semestre = data["moyenne_semestre"].values
+    bin_edges = np.arange(0, 18, 2)
+    i = 0
+    bins = []
+    for i in range(len(bin_edges) - 1):
+        bins.append([int(bin_edges[i]), int(bin_edges[i + 1])])
+
+    counts, _ = np.histogram(moyennes_semestre, bins=bin_edges)
+
+    return jsonify({"bins": bins, "counts": counts.tolist()})
 
 
 if __name__ == "__main__":

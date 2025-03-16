@@ -1,5 +1,6 @@
 import AllStudents from "./all-students";
 import ClassStats from "./class-stats";
+import StudentsCharts from "./students-charts";
 import StudentsPerformance from "./students-performance";
 
 export default function Dashboard() {
@@ -11,6 +12,7 @@ export default function Dashboard() {
         <StudentsPerformance />
       </div>
       <AllStudents />
+      <StudentsCharts />
     </div>
   );
 }
