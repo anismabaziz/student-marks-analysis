@@ -167,5 +167,32 @@ def get_grades_distribution():
     return jsonify({"bins": bins, "counts": counts.tolist()})
 
 
+@app.route("/students/modules-averages", methods=["GET"])
+def get_modules_averages():
+    all_records = []
+    batch_size = 1000
+    start = 0
+
+    while True:
+        response = (
+            supabase.table("analysis_student_grades_usthb")
+            .select("*")
+            .range(start, start + batch_size - 1)
+            .execute()
+        )
+
+        if response.data:
+            all_records.extend(response.data)
+            if len(response.data) < batch_size:
+                break
+            start += batch_size
+        else:
+            break
+
+    data = pd.DataFrame(all_records)
+    print(data.select_dtypes("float64", "int64").mean())
+    return jsonify({"test": "test"})
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=3000)
