@@ -49,7 +49,7 @@ def get_stats():
         return jsonify({"error": "Please provide a module name"}), 400
 
     if not table:
-        return jsonify({"error": "Please provide a module name"}), 400
+        return jsonify({"error": "Please provide a table name"}), 400
 
     all_records = []
     batch_size = 1000
@@ -96,24 +96,24 @@ def get_stats():
 
 @app.route("/students/mappings", methods=["GET"])
 def get_mappings():
-    response = (
-        supabase.table("analysis_student_grades_usthb_mappings").select("*").execute()
-    )
-
+    table = request.args.get("table")
+    if not table:
+        return jsonify({"error": "Please provide a table name"}), 400
+    response = supabase.table(table_name=table).select("*").execute()
     return jsonify({"mappings": response.data})
 
 
 @app.route("/students/top-performing", methods=["GET"])
 def get_top_performing_students():
     module = request.args.get("module")
-    table_name = request.args.get("table")
+    table = request.args.get("table")
     if not module:
         return jsonify({"error": "Please provide a column name"}), 400
-    if not table_name:
+    if not table:
         return jsonify({"error": "Please provide a table name"}), 400
 
     response = (
-        supabase.table(table_name=table_name)
+        supabase.table(table_name=table)
         .select("*")
         .order(column=module, desc=True)
         .limit(5)
@@ -131,7 +131,7 @@ def get_lowest_perfoming_students():
     if not table:
         return jsonify({"error": "Please provide a table name"}), 400
     response = (
-        supabase.table(table)
+        supabase.table(table_name=table)
         .select("*")
         .neq(module, 0)
         .order(module, desc=False)
@@ -143,13 +143,16 @@ def get_lowest_perfoming_students():
 
 @app.route("/students/grades-distribution", methods=["GET"])
 def get_grades_distribution():
+    table = request.args.get("table")
+    if not table:
+        return jsonify({"error": "Please provide a table name"}), 400
     all_records = []
     batch_size = 1000
     start = 0
 
     while True:
         response = (
-            supabase.table("analysis_student_grades_usthb")
+            supabase.table(table_name=table)
             .select("*")
             .range(start, start + batch_size - 1)
             .execute()
@@ -164,7 +167,7 @@ def get_grades_distribution():
             break
 
     data = pd.DataFrame(all_records)
-    moyennes_semestre = data["moyenne_semestre"].values
+    moyennes_semestre = data["moyenne_du_semestre"].values
     bin_edges = np.arange(0, 18, 2)
     i = 0
     bins = []
@@ -178,13 +181,17 @@ def get_grades_distribution():
 
 @app.route("/students/modules-averages", methods=["GET"])
 def get_modules_averages():
+    table = request.args.get("table")
+    if not table:
+        return jsonify({"error": "Please provide a table name"}), 400
+
     all_records = []
     batch_size = 1000
     start = 0
 
     while True:
         response = (
-            supabase.table("analysis_student_grades_usthb")
+            supabase.table(table_name=table)
             .select("*")
             .range(start, start + batch_size - 1)
             .execute()

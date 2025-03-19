@@ -3,11 +3,16 @@ import { getGradeDistribution } from "@/services/charts";
 import { useQuery } from "@tanstack/react-query";
 import GradeDistribution from "./charts/grade-distribution";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import useTableStore from "@/store/table-store";
+
 export default function StudentsCharts() {
-  const { data: grade_distribution_data } = useQuery({
-    queryKey: ["grade-distributions"],
-    queryFn: getGradeDistribution,
+  const { tableName } = useTableStore();
+  const gradesDistributionQuery = useQuery({
+    queryKey: ["grades-distributions", tableName],
+    queryFn: () => getGradeDistribution(tableName),
+    enabled: !!tableName,
   });
+
   return (
     <Card>
       <CardHeader>
@@ -28,10 +33,10 @@ export default function StudentsCharts() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="grades_distributions" className="space-y-4">
-            {grade_distribution_data && (
+            {gradesDistributionQuery.data && (
               <GradeDistribution
-                counts={grade_distribution_data.counts}
-                bins={grade_distribution_data.bins}
+                counts={gradesDistributionQuery.data.counts}
+                bins={gradesDistributionQuery.data.bins}
               />
             )}
           </TabsContent>

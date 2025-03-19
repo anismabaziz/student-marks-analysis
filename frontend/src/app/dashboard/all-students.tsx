@@ -7,6 +7,7 @@ import { DataTable } from "./students/data-table";
 import { generateColumns } from "./students/columns";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
@@ -51,14 +52,15 @@ export default function AllStudents() {
         <h3 className="text-xl font-semibold">All Students</h3>
       </CardHeader>
       <CardContent className="space-y-4 min-h-[500px]">
-        <div className="flex justify-end">
-          <div className="flex items-center gap-4">
+        <div className="flex justify-between">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search Student"
-              className="w-fit"
+              type="search"
+              placeholder="Search students..."
+              className="pl-8 w-full"
               value={searchState.searchTerm}
               onChange={(e) => {
-                e.preventDefault();
                 searchState.setSearchTerm(e.target.value);
                 queryClient.invalidateQueries({
                   queryKey: ["students", searchState.page, tableName],
