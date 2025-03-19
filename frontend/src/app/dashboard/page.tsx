@@ -21,6 +21,7 @@ export default function Dashboard() {
     queryKey: ["table-names"],
     queryFn: getTableNames,
   });
+
   const { setModule } = useStatsStore();
   const { tableName, setTableName } = useTableStore();
 
@@ -65,7 +66,6 @@ export default function Dashboard() {
         <StudentsPerformance />
       </div>
       <AllStudents />
-      <StudentsCharts />
     </div>
   );
 }

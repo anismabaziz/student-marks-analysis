@@ -21,11 +21,13 @@ export default function ClassStats() {
   const relevantColsQuery = useQuery({
     queryKey: ["relevant-cols", tableName],
     queryFn: () => getRelevantCols(tableName),
+    enabled: !!tableName,
   });
 
   const statsQuery = useQuery({
     queryKey: ["stats", module, tableName],
     queryFn: () => getStats(tableName, module),
+    enabled: !!tableName,
   });
 
   return (

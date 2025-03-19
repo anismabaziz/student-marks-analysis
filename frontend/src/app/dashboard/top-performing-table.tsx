@@ -17,6 +17,7 @@ export default function TopPerformingTable() {
   const TopPerformingTableQuery = useQuery({
     queryKey: ["top_perfoming", "moyenne_semestre", tableName],
     queryFn: () => getTopPerformingStudentsOverall(tableName),
+    enabled: !!tableName,
   });
 
   return (

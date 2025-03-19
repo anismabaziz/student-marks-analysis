@@ -14,25 +14,25 @@ def get_students():
     query = request.args.get("query")
     page = int(request.args.get("page", 1))
     limit = int(request.args.get("limit", 10))
+    table = request.args.get("table")
+
+    if not table:
+        return jsonify({"error": "Please provide a table name"}), 400
 
     start = (page - 1) * limit
     end = start + limit - 1
 
-    query_builder = supabase.table("analysis_student_grades_usthb").select(
-        "*", count="exact"
-    )
+    query_builder = supabase.table(table).select("*", count="exact")
 
     if query:
         query_builder = query_builder.ilike("name", f"%{query}%")
 
     students_response = query_builder.range(start, end).execute()
-    mappings_response = (
-        supabase.table("analysis_student_grades_usthb_mappings").select("*").execute()
-    )
+    mappings_response = supabase.table(f"{table}_mappings").select("*").execute()
 
     return jsonify(
         {
-            "data": students_response.data,
+            "records": students_response.data,
             "page": page,
             "limit": limit,
             "total_records": students_response.count,
@@ -141,7 +141,7 @@ def get_lowest_perfoming_students():
     return jsonify({"module": module, "students": response.data})
 
 
-@app.route("/students/grades-distribution")
+@app.route("/students/grades-distribution", methods=["GET"])
 def get_grades_distribution():
     all_records = []
     batch_size = 1000
@@ -203,13 +203,13 @@ def get_modules_averages():
     return jsonify({"test": "test"})
 
 
-@app.get("/students/tables")
+@app.route("/students/tables", methods=["GET"])
 def get_analysis_tables():
     response = supabase.rpc("get_analysis_tables").execute()
     return jsonify({"tables": response.data})
 
 
-@app.get("/students/relevant-cols")
+@app.route("/students/relevant-cols", methods=["GET"])
 def get_relevant_cols():
     table = request.args.get("table")
     if not table:

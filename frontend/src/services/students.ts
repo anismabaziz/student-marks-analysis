@@ -22,9 +22,15 @@ export async function getRelevantCols(tableName: string) {
   ).data;
 }
 
-export async function getStudents(searchTerm: string, page: number) {
+export async function getStudentsTable(
+  table: string,
+  searchTerm: string,
+  page: number
+) {
   return (
-    await axiosClient.get("/students", { params: { query: searchTerm, page } })
+    await axiosClient.get("/students", {
+      params: { table, query: searchTerm, page },
+    })
   ).data;
 }
 
