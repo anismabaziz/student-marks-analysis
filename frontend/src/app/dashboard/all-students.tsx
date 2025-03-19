@@ -72,7 +72,10 @@ export default function AllStudents() {
         {studentsTableQuery.data && relevantColsQuery.data && (
           <DataTable columns={columns} data={studentsTableQuery.data.records} />
         )}
-        {studentsTableQuery.isLoading && relevantColsQuery.isLoading && (
+        {(studentsTableQuery.isLoading ||
+          relevantColsQuery.isLoading ||
+          !studentsTableQuery.data ||
+          !relevantColsQuery.data) && (
           <Skeleton className="w-full h-[400px] rounded" />
         )}
         <div className="flex justify-end gap-4">

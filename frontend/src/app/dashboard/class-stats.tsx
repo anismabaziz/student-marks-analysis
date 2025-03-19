@@ -54,7 +54,7 @@ export default function ClassStats() {
             </SelectContent>
           </Select>
         )}
-        {relevantColsQuery.isLoading && (
+        {(relevantColsQuery.isLoading || !relevantColsQuery.data) && (
           <Skeleton className="w-[180px] h-[30px]" />
         )}
       </CardHeader>
@@ -87,9 +87,11 @@ export default function ClassStats() {
             />
           </>
         )}
-        {statsQuery.isLoading &&
+        {(statsQuery.isLoading || !statsQuery.data) &&
           [1, 2, 3, 4].map((ele) => {
-            return <Skeleton key={ele} className="w-full h-[150px] rounded" />;
+            return (
+              <Skeleton key={ele} className="w-full h-[130px] rounded-lg" />
+            );
           })}
       </CardContent>
     </Card>

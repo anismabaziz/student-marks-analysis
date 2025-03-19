@@ -14,12 +14,12 @@ export default function StudentsCharts() {
   });
 
   return (
-    <Card className="min-h-[500px]">
+    <Card className="min-h-[800px]">
       <CardHeader>
         <h3 className="text-xl font-semibold">Grade Analytics</h3>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="grades_distributions" className="">
+        <Tabs defaultValue="grades_distributions">
           <TabsList className="grid w-full md:grid-cols-4 grid-cols-2 mb-4 gap-3">
             <TabsTrigger value="grades_distributions">
               Grades Distribution

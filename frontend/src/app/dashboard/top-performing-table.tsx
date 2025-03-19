@@ -14,7 +14,7 @@ import { TrendingUp } from "lucide-react";
 export default function TopPerformingTable() {
   const { tableName } = useTableStore();
 
-  const TopPerformingTableQuery = useQuery({
+  const topPerformingTableQuery = useQuery({
     queryKey: ["top_perfoming", "moyenne_semestre", tableName],
     queryFn: () => getTopPerformingStudentsOverall(tableName),
     enabled: !!tableName,
@@ -27,7 +27,7 @@ export default function TopPerformingTable() {
         <h3 className="font-medium text-sm">Top Performing Students</h3>
       </div>
       <div className="rounded-md border">
-        {TopPerformingTableQuery.data && (
+        {topPerformingTableQuery.data && (
           <Table>
             <TableHeader>
               <TableRow>
@@ -37,7 +37,7 @@ export default function TopPerformingTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {TopPerformingTableQuery.data.students.map((student) => {
+              {topPerformingTableQuery.data.students.map((student) => {
                 return (
                   <TableRow key={student.code}>
                     <TableCell className="font-medium">
@@ -51,9 +51,8 @@ export default function TopPerformingTable() {
             </TableBody>
           </Table>
         )}
-        {TopPerformingTableQuery.isLoading && (
-          <Skeleton className="h-[200px]" />
-        )}
+        {(topPerformingTableQuery.isLoading ||
+          !topPerformingTableQuery.data) && <Skeleton className="h-[200px]" />}
       </div>
     </div>
   );

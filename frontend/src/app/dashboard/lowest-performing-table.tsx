@@ -11,10 +11,10 @@ import { getLowestPerformingStudentsOverall } from "@/services/students";
 import useTableStore from "@/store/table-store";
 import { useQuery } from "@tanstack/react-query";
 import { TrendingDown } from "lucide-react";
-export default function TopPerformingTable() {
+export default function LowestPerformingTable() {
   const { tableName } = useTableStore();
 
-  const TopPerformingTableQuery = useQuery({
+  const lowestPerformingTableQuery = useQuery({
     queryKey: ["lowest_performing", "moyenne_du_semestre", tableName],
     queryFn: () => getLowestPerformingStudentsOverall(tableName),
     enabled: !!tableName,
@@ -27,7 +27,7 @@ export default function TopPerformingTable() {
         <h3 className="font-medium text-sm">Lowest Performing Students</h3>
       </div>
       <div className="rounded-md border">
-        {TopPerformingTableQuery.data && (
+        {lowestPerformingTableQuery.data && (
           <Table>
             <TableHeader>
               <TableRow>
@@ -37,7 +37,7 @@ export default function TopPerformingTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {TopPerformingTableQuery.data.students.map((student) => {
+              {lowestPerformingTableQuery.data.students.map((student) => {
                 return (
                   <TableRow key={student.code}>
                     <TableCell className="font-medium">
@@ -51,7 +51,8 @@ export default function TopPerformingTable() {
             </TableBody>
           </Table>
         )}
-        {TopPerformingTableQuery.isLoading && (
+        {(lowestPerformingTableQuery.isLoading ||
+          !lowestPerformingTableQuery.data) && (
           <Skeleton className="h-[200px]" />
         )}
       </div>
