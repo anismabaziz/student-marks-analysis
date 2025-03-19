@@ -31,7 +31,7 @@ export default function TopPerformingTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Name</TableHead>
+                <TableHead>Name</TableHead>
                 <TableHead>Code</TableHead>
                 <TableHead>Moyenne Du Semestre</TableHead>
               </TableRow>

@@ -11,7 +11,7 @@ export default function ClassStatsCard({
   quality,
 }: ClassStatsCardProps) {
   return (
-    <Card>
+    <Card className="w-full">
       <CardContent className="">
         <p className="text-sm font-semibold">{metric}</p>
         <h2 className="text-3xl font-bold mb-2">{`${value}${

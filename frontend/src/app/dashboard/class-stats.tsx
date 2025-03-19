@@ -58,7 +58,7 @@ export default function ClassStats() {
           <Skeleton className="w-[180px] h-[30px]" />
         )}
       </CardHeader>
-      <CardContent className="grid grid-cols-2 gap-4">
+      <CardContent className="grid md:grid-cols-2 gap-4">
         {statsQuery.data && (
           <>
             <ClassStatsCard
