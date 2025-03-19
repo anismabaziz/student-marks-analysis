@@ -34,17 +34,30 @@ export async function getStudentsTable(
   ).data;
 }
 
+interface IGetTopPerformingStudentsOverall {
+  students: { moyenne_du_semestre: string; name: string; code: string }[];
+}
 export async function getTopPerformingStudentsOverall(table: string) {
   return (
-    await axiosClient.get("/students/top-performing", {
-      params: { table, module: "moyenne_du_semestre" },
-    })
+    await axiosClient.get<IGetTopPerformingStudentsOverall>(
+      "/students/top-performing",
+      {
+        params: { table, module: "moyenne_du_semestre" },
+      }
+    )
   ).data;
+}
+
+interface IGetLowestPerformingStudentsOverall {
+  students: { moyenne_du_semestre: string; name: string; code: string }[];
 }
 export async function getLowestPerformingStudentsOverall(table: string) {
   return (
-    await axiosClient.get("/students/lowest-performing", {
-      params: { table, module: "moyenne_du_semestre" },
-    })
+    await axiosClient.get<IGetLowestPerformingStudentsOverall>(
+      "/students/lowest-performing",
+      {
+        params: { table, module: "moyenne_du_semestre" },
+      }
+    )
   ).data;
 }
