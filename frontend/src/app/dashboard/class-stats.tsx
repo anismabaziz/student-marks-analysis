@@ -8,92 +8,87 @@ import {
 } from "@/components/ui/select";
 import ClassStatsCard from "./class-stats-card";
 import { useQuery } from "@tanstack/react-query";
-import { getMappings, getStats } from "@/services/stats";
+import { getStats } from "@/services/stats";
 import useStatsStore from "@/store/class-stats-store";
+import { getRelevantCols } from "@/services/students";
+import useTableStore from "@/store/table-store";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ClassStats() {
   const { module, setModule } = useStatsStore();
+  const { tableName } = useTableStore();
 
-  const { data: stats_data } = useQuery({
-    queryKey: ["stats", module],
-    queryFn: () => getStats(module),
+  const relevantColsQuery = useQuery({
+    queryKey: ["relevant-cols", tableName],
+    queryFn: () => getRelevantCols(tableName),
   });
 
-  const { data: mappings_data } = useQuery({
-    queryKey: ["mappings"],
-    queryFn: getMappings,
-  });
-
-  if (!stats_data || !mappings_data) return <div>Loading...</div>;
-
-  console.log(stats_data);
-
-  const statsFields = [
-    "phy1",
-    "asd1",
-    "algebre1",
-    "analyse1",
-    "moyenne_semestre",
-    "sm1",
-    "le1",
-    "est",
-  ];
-
-  const selectMappings = statsFields.map((field) => {
-    const mappings = mappings_data.mappings;
-    const mapping = mappings.find((mapping) => mapping.db_name == field);
-    return {
-      name: mapping.table_name,
-      value: mapping.db_name,
-    };
+  const statsQuery = useQuery({
+    queryKey: ["stats", module, tableName],
+    queryFn: () => getStats(tableName, module),
   });
 
   return (
     <Card>
       <CardHeader className="flex items-center justify-between">
         <h3 className="text-xl font-semibold">Class Statistics</h3>
-        <Select
-          defaultValue={module}
-          onValueChange={(value) => setModule(value)}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {selectMappings.map((mapping, idx) => {
-              return (
-                <SelectItem key={idx} value={mapping.value}>
-                  {mapping.name}
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
+        {relevantColsQuery.data && (
+          <Select value={module} onValueChange={(value) => setModule(value)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {relevantColsQuery.data.mappings
+                .filter(
+                  (col) => col.db_name !== "name" && col.db_name !== "code"
+                )
+                .map((col, idx) => {
+                  return (
+                    <SelectItem key={idx} value={col.db_name}>
+                      {col.name}
+                    </SelectItem>
+                  );
+                })}
+            </SelectContent>
+          </Select>
+        )}
+        {relevantColsQuery.isLoading && (
+          <Skeleton className="w-[180px] h-[30px]" />
+        )}
       </CardHeader>
       <CardContent className="grid grid-cols-2 gap-4">
-        <ClassStatsCard
-          metric={"Average"}
-          value={stats_data.average_grade}
-          quality={
-            mappings_data.mappings.find((mapping) => mapping.db_name == module)
-              .table_name
-          }
-        />
-        <ClassStatsCard
-          metric={"Highest"}
-          value={stats_data.max_grade}
-          quality={"Highest grade"}
-        />
-        <ClassStatsCard
-          metric={"Lowest"}
-          value={stats_data.min_grade}
-          quality={"Lowest grade"}
-        />
-        <ClassStatsCard
-          metric={"Passing"}
-          value={stats_data.passing_rate}
-          quality={"Pass rate"}
-        />
+        {statsQuery.data && (
+          <>
+            <ClassStatsCard
+              metric={"Average"}
+              value={statsQuery.data.average_grade}
+              quality={
+                relevantColsQuery.data?.mappings.find(
+                  (mapping) => mapping.db_name === module
+                )?.name as string
+              }
+            />
+            <ClassStatsCard
+              metric={"Highest"}
+              value={statsQuery.data.max_grade}
+              quality={"Highest grade"}
+            />
+            <ClassStatsCard
+              metric={"Lowest"}
+              value={statsQuery.data.min_grade}
+              quality={"Lowest grade"}
+            />
+            <ClassStatsCard
+              metric={"Passing"}
+              value={statsQuery.data.passing_rate}
+              quality={"Pass rate"}
+            />
+          </>
+        )}
+        {statsQuery.isLoading &&
+          [1, 2, 3, 4].map((ele) => {
+            return <Skeleton key={ele} className="w-full h-[150px] rounded" />;
+          })}
       </CardContent>
     </Card>
   );

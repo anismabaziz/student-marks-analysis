@@ -6,7 +6,7 @@ type StatsState = {
 };
 
 export const useStatsStore = create<StatsState>((set) => ({
-  module: "moyenne_semestre",
+  module: "moyenne_du_semestre",
   setModule: (module) => set({ module: module }),
 }));
 

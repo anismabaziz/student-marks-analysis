@@ -1,8 +1,17 @@
 import axiosClient from "./client";
 
-export async function getStats(module: string) {
+interface IGetStats {
+  module: string;
+  average_grade: number;
+  max_grade: number;
+  min_grade: number;
+  passing_rate: number;
+}
+export async function getStats(table: string, module: string) {
   return (
-    await axiosClient.get("/students/stats", { params: { column: module } })
+    await axiosClient.get<IGetStats>("/students/stats", {
+      params: { table, module },
+    })
   ).data;
 }
 

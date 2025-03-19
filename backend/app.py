@@ -43,9 +43,13 @@ def get_students():
 
 @app.route("/students/stats", methods=["GET"])
 def get_stats():
-    column = request.args.get("column")
-    if not column:
-        return jsonify({"error": "Please provide a column name"}), 400
+    module = request.args.get("module")
+    table = request.args.get("table")
+    if not module:
+        return jsonify({"error": "Please provide a module name"}), 400
+
+    if not table:
+        return jsonify({"error": "Please provide a module name"}), 400
 
     all_records = []
     batch_size = 1000
@@ -53,7 +57,7 @@ def get_stats():
 
     while True:
         response = (
-            supabase.table("analysis_student_grades_usthb")
+            supabase.table(table_name=table)
             .select("*")
             .range(start, start + batch_size - 1)
             .execute()
@@ -70,18 +74,18 @@ def get_stats():
     data = pd.DataFrame(all_records)
     all_students = len(data)
 
-    if column not in data.columns:
-        return jsonify({"error": f"Column '{column}' not found"}), 400
+    if module not in data.columns:
+        return jsonify({"error": f"Column '{module}' not found"}), 400
 
-    avg_grade = data[column].mean()
-    max_grade = data[column].max()
-    min_grade = data[column].min()
-    passing_students = data.loc[data[column] >= 10, column].count()
+    avg_grade = data[module].mean()
+    max_grade = data[module].max()
+    min_grade = data[module].min()
+    passing_students = data.loc[data[module] >= 10, module].count()
     passing_rate = (passing_students / all_students) * 100
 
     return jsonify(
         {
-            "column": column,
+            "module": module,
             "average_grade": round(avg_grade, 2),
             "max_grade": max_grade,
             "min_grade": min_grade,
@@ -101,35 +105,40 @@ def get_mappings():
 
 @app.route("/students/top-performing", methods=["GET"])
 def get_top_performing_students():
-    column = request.args.get("column")
-    if not column:
+    module = request.args.get("module")
+    table_name = request.args.get("table")
+    if not module:
         return jsonify({"error": "Please provide a column name"}), 400
+    if not table_name:
+        return jsonify({"error": "Please provide a table name"}), 400
 
     response = (
-        supabase.table("analysis_student_grades_usthb")
+        supabase.table(table_name=table_name)
         .select("*")
-        .order(column=column, desc=True)
+        .order(column=module, desc=True)
         .limit(5)
         .execute()
     )
-    return jsonify({"column": column, "data": response.data})
+    return jsonify({"module": module, "students": response.data})
 
 
 @app.route("/students/lowest-performing", methods=["GET"])
 def get_lowest_perfoming_students():
-    column = request.args.get("column")
-    if not column:
+    module = request.args.get("module")
+    table = request.args.get("table")
+    if not module:
         return jsonify({"error": "Please provide a column name"}), 400
-
+    if not table:
+        return jsonify({"error": "Please provide a table name"}), 400
     response = (
-        supabase.table("analysis_student_grades_usthb")
+        supabase.table(table)
         .select("*")
-        .neq(column, 0)
-        .order(column, desc=False)
+        .neq(module, 0)
+        .order(module, desc=False)
         .limit(5)
         .execute()
     )
-    return jsonify({"column": column, "data": response.data})
+    return jsonify({"module": module, "students": response.data})
 
 
 @app.route("/students/grades-distribution")
@@ -192,6 +201,28 @@ def get_modules_averages():
     data = pd.DataFrame(all_records)
     print(data.select_dtypes("float64", "int64").mean())
     return jsonify({"test": "test"})
+
+
+@app.get("/students/tables")
+def get_analysis_tables():
+    response = supabase.rpc("get_analysis_tables").execute()
+    return jsonify({"tables": response.data})
+
+
+@app.get("/students/relevant-cols")
+def get_relevant_cols():
+    table = request.args.get("table")
+    if not table:
+        return jsonify({"error": "Please provide a table name"}), 400
+    response = supabase.table(f"{table}_mappings").select("*").execute()
+    cols = response.data
+    unwanted_words = ["credit_ue", "moyenne_ue", "credits"]
+    relevant_cols = [
+        col
+        for col in cols
+        if not any(word in col["db_name"] for word in unwanted_words)
+    ]
+    return {"mappings": relevant_cols}
 
 
 if __name__ == "__main__":
