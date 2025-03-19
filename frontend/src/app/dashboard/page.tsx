@@ -33,7 +33,7 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto py-10 space-y-5 px-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold">Student Grades Dashboard</h1>
         {tableNamesQuery.data && (
           <Select
