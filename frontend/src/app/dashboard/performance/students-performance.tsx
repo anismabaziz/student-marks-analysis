@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import TopPerformingTable from "./top-performing-table";
-import LowestPerformingTable from "./lowest-performing-table";
+import PerformanceOverall from "./performance-overall";
+import PerformanceBySubject from "./performance-by-subject";
+
 export default function StudentsPerformance() {
   return (
     <Card className="min-h-[700px]">
@@ -17,8 +18,10 @@ export default function StudentsPerformance() {
             <TabsTrigger value="by_subject">By Subject</TabsTrigger>
           </TabsList>
           <TabsContent value="overall" className="space-y-4">
-            <TopPerformingTable />
-            <LowestPerformingTable />
+            <PerformanceOverall />
+          </TabsContent>
+          <TabsContent value="by_subject">
+            <PerformanceBySubject />
           </TabsContent>
         </Tabs>
       </CardContent>

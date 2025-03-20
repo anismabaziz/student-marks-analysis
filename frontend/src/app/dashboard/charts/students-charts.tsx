@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getGradeDistribution, getModulesAverages } from "@/services/charts";
 import { useQuery } from "@tanstack/react-query";
-import GradeDistribution from "./charts/grade-distribution";
+import GradeDistribution from "./grade-distribution";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useTableStore from "@/store/table-store";
-import SubjectAverages from "./charts/subject-averages";
+import SubjectAverages from "./subject-averages";
 
 export default function StudentsCharts() {
   const { tableName } = useTableStore();
@@ -18,8 +18,6 @@ export default function StudentsCharts() {
     queryFn: () => getModulesAverages(tableName),
     enabled: !!tableName,
   });
-
-  console.log(gradesDistributionQuery.data);
 
   return (
     <Card className="min-h-[800px]">

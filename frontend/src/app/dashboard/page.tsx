@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import AllStudents from "./all-students";
 import ClassStats from "./class-stats";
-import StudentsPerformance from "./students-performance";
+import StudentsPerformance from "./performance/students-performance";
 import {
   Select,
   SelectTrigger,
@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import useTableStore from "@/store/table-store";
 import { useEffect } from "react";
 import useStatsStore from "@/store/class-stats-store";
-import StudentsCharts from "./students-charts";
+import StudentsCharts from "./charts/students-charts";
 
 export default function Dashboard() {
   const tableNamesQuery = useQuery({
