@@ -210,9 +210,23 @@ def get_modules_averages():
         else:
             break
 
+    response = supabase.table(f"{table}_mappings").select("*").execute()
+    cols = response.data
+
     data = pd.DataFrame(all_records)
-    print(data.select_dtypes("float64", "int64").mean())
-    return jsonify({"test": "test"})
+    averages = data.select_dtypes("float64", "int64").mean().round(2)
+
+    unwanted_words = ["credit_ue", "moyenne_ue", "credits", "name", "code"]
+    relevant_cols = [
+        col
+        for col in cols
+        if not any(word in col["db_name"] for word in unwanted_words)
+    ]
+    columns_to_include = [col["db_name"] for col in relevant_cols]
+    averages = averages[columns_to_include]
+    averages_dict_arr = [{"name": col, "average": avg} for col, avg in averages.items()]
+
+    return jsonify({"averages": averages_dict_arr})
 
 
 @app.route("/students/tables", methods=["GET"])

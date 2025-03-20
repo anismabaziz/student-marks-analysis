@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { getGradeDistribution } from "@/services/charts";
+import { getGradeDistribution, getModulesAverages } from "@/services/charts";
 import { useQuery } from "@tanstack/react-query";
 import GradeDistribution from "./charts/grade-distribution";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useTableStore from "@/store/table-store";
+import SubjectAverages from "./charts/subject-averages";
 
 export default function StudentsCharts() {
   const { tableName } = useTableStore();
@@ -12,6 +13,13 @@ export default function StudentsCharts() {
     queryFn: () => getGradeDistribution(tableName),
     enabled: !!tableName,
   });
+  const modulesAveragesQuery = useQuery({
+    queryKey: ["modules-averages", tableName],
+    queryFn: () => getModulesAverages(tableName),
+    enabled: !!tableName,
+  });
+
+  console.log(gradesDistributionQuery.data);
 
   return (
     <Card className="min-h-[800px]">
@@ -20,7 +28,7 @@ export default function StudentsCharts() {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="grades_distributions">
-          <TabsList className="grid w-full md:grid-cols-4 grid-cols-2 mb-4 gap-3">
+          <TabsList className="grid w-full grid-cols-4 gap-3 mb-10">
             <TabsTrigger value="grades_distributions">
               Grades Distribution
             </TabsTrigger>
@@ -38,6 +46,11 @@ export default function StudentsCharts() {
                 counts={gradesDistributionQuery.data.counts}
                 bins={gradesDistributionQuery.data.bins}
               />
+            )}
+          </TabsContent>
+          <TabsContent value="subject_averages" className="space-y-4">
+            {modulesAveragesQuery.data && (
+              <SubjectAverages averages={modulesAveragesQuery.data?.averages} />
             )}
           </TabsContent>
         </Tabs>

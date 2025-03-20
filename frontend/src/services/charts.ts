@@ -12,3 +12,14 @@ export async function getGradeDistribution(table: string) {
     )
   ).data;
 }
+
+interface IGetModulesAverages {
+  averages: unknown[];
+}
+export async function getModulesAverages(table: string) {
+  return (
+    await axiosClient.get<IGetModulesAverages>("/students/modules-averages", {
+      params: { table },
+    })
+  ).data;
+}
