@@ -1,4 +1,4 @@
-from database.db import engine
+from app.database.db import engine
 
 
 def test_connection():
