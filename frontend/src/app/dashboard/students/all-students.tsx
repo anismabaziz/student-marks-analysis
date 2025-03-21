@@ -23,7 +23,6 @@ export default function AllStudents() {
       getStudentsTable(tableName, searchState.searchTerm, searchState.page),
     enabled: !!tableName,
   });
-  console.log(studentsTableQuery.data);
 
   const relevantColsQuery = useQuery({
     queryKey: ["relevant-cols", tableName],

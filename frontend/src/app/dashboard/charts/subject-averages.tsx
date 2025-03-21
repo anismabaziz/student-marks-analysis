@@ -21,7 +21,6 @@ interface SubjectAveragesProps {
 }
 
 export default function SubjectAverages({ averages }: SubjectAveragesProps) {
-  console.log(averages);
   return (
     <Card>
       <CardContent className="pb-0">
