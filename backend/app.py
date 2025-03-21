@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from supabase_client import supabase
+from app.supabase_client import supabase
 from flask_cors import CORS
 import pandas as pd
 import numpy as np
@@ -7,48 +7,6 @@ import numpy as np
 app = Flask(__name__)
 
 CORS(app)
-
-
-@app.route("/health", methods=["GET"])
-def check_health():
-    return jsonify({"response": "OK"}), 200
-
-
-@app.route("/ping", methods=["GET"])
-def ping():
-    return jsonify({"response": "pong"})
-
-
-@app.route("/students", methods=["GET"])
-def get_students():
-    query = request.args.get("query")
-    page = int(request.args.get("page", 1))
-    limit = int(request.args.get("limit", 10))
-    table = request.args.get("table")
-
-    if not table:
-        return jsonify({"error": "Please provide a table name"}), 400
-
-    start = (page - 1) * limit
-    end = start + limit - 1
-
-    query_builder = supabase.table(table).select("*", count="exact")
-
-    if query:
-        query_builder = query_builder.ilike("name", f"%{query}%")
-
-    students_response = query_builder.range(start, end).execute()
-    mappings_response = supabase.table(f"{table}_mappings").select("*").execute()
-
-    return jsonify(
-        {
-            "records": students_response.data,
-            "page": page,
-            "limit": limit,
-            "total_records": students_response.count,
-            "mappings": mappings_response.data,
-        }
-    )
 
 
 @app.route("/students/stats", methods=["GET"])
@@ -102,15 +60,6 @@ def get_stats():
             "passing_rate": round(passing_rate, 2),
         }
     )
-
-
-@app.route("/students/mappings", methods=["GET"])
-def get_mappings():
-    table = request.args.get("table")
-    if not table:
-        return jsonify({"error": "Please provide a table name"}), 400
-    response = supabase.table(table_name=table).select("*").execute()
-    return jsonify({"mappings": response.data})
 
 
 @app.route("/students/top-performing", methods=["GET"])
@@ -254,7 +203,3 @@ def get_relevant_cols():
         if not any(word in col["db_name"] for word in unwanted_words)
     ]
     return {"mappings": relevant_cols}
-
-
-if __name__ == "__main__":
-    app.run()
