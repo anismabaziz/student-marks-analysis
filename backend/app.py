@@ -9,6 +9,11 @@ app = Flask(__name__)
 CORS(app)
 
 
+@app.route("/health", methods=["GET"])
+def check_health():
+    return jsonify({"response": "OK"}), 200
+
+
 @app.route("/ping", methods=["GET"])
 def ping():
     return jsonify({"response": "pong"})
@@ -252,4 +257,4 @@ def get_relevant_cols():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=3000)
+    app.run()
