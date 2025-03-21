@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { getStudentsTable, getRelevantCols } from "@/services/students";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import useTableStore from "@/store/table-store";
-import { DataTable } from "./students/data-table";
-import { generateColumns } from "./students/columns";
+import { DataTable } from "./data-table";
+import { generateColumns } from "./columns";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search } from "lucide-react";
@@ -23,6 +23,7 @@ export default function AllStudents() {
       getStudentsTable(tableName, searchState.searchTerm, searchState.page),
     enabled: !!tableName,
   });
+  console.log(studentsTableQuery.data);
 
   const relevantColsQuery = useQuery({
     queryKey: ["relevant-cols", tableName],
@@ -78,25 +79,36 @@ export default function AllStudents() {
           !relevantColsQuery.data) && (
           <Skeleton className="w-full h-[400px] rounded" />
         )}
-        <div className="flex justify-end gap-4">
-          <Button
-            variant={"outline"}
-            className="cursor-pointer"
-            onClick={() => {
-              searchState.setPage(searchState.page - 1);
-            }}
-            disabled={searchState.page == 1}
-          >
-            Previous
-          </Button>
-          <Button
-            className="cursor-pointer"
-            onClick={() => {
-              searchState.setPage(searchState.page + 1);
-            }}
-          >
-            Next
-          </Button>
+        <div className="flex justify-between gap-4 items-center">
+          {studentsTableQuery.data && (
+            <div className="text-muted-foreground text-sm">
+              Total Students {studentsTableQuery.data.total_records}
+            </div>
+          )}
+          {(studentsTableQuery.isLoading || !studentsTableQuery.data) && (
+            <Skeleton className="h-10 w-[100px]" />
+          )}
+
+          <div className="space-x-4">
+            <Button
+              variant={"outline"}
+              className="cursor-pointer"
+              onClick={() => {
+                searchState.setPage(searchState.page - 1);
+              }}
+              disabled={searchState.page == 1}
+            >
+              Previous
+            </Button>
+            <Button
+              className="cursor-pointer"
+              onClick={() => {
+                searchState.setPage(searchState.page + 1);
+              }}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

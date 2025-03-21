@@ -38,7 +38,7 @@ export default function GradeDistribution({
       <CardContent>
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[400px] md:w-1/2"
+          className="mx-auto aspect-square max-h-[400px]"
         >
           <BarChart accessibilityLayer data={chartData}>
             <Legend layout="horizontal" align="right" verticalAlign="top" />
@@ -71,7 +71,7 @@ export default function GradeDistribution({
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
         <div className="flex items-center gap-2 font-medium leading-none">
-          Showing Grades Distribution <TrendingUp className="h-4 w-4" />
+          Grades Distribution <TrendingUp className="h-4 w-4" />
         </div>
       </CardFooter>
     </Card>

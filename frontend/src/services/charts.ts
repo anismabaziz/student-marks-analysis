@@ -14,7 +14,7 @@ export async function getGradeDistribution(table: string) {
 }
 
 interface IGetModulesAverages {
-  averages: unknown[];
+  averages: { average: number; name: string }[];
 }
 export async function getModulesAverages(table: string) {
   return (

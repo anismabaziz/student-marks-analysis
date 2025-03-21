@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import AllStudents from "./all-students";
-import ClassStats from "./class-stats";
+import AllStudents from "./students/all-students";
+import ClassStats from "./class-stats/class-stats";
 import StudentsPerformance from "./performance/students-performance";
 import {
   Select,

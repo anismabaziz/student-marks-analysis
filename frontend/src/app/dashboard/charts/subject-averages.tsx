@@ -17,16 +17,17 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 interface SubjectAveragesProps {
-  averages: unknown[];
+  averages: { average: number; name: string | undefined }[];
 }
 
 export default function SubjectAverages({ averages }: SubjectAveragesProps) {
+  console.log(averages);
   return (
     <Card>
       <CardContent className="pb-0">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[400px] md:w-1/2"
+          className="mx-auto aspect-square max-h-[400px]"
         >
           <RadarChart data={averages}>
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
@@ -43,7 +44,7 @@ export default function SubjectAverages({ averages }: SubjectAveragesProps) {
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
         <div className="flex items-center gap-2 font-medium leading-none">
-          Showing Semester Performance <TrendingUp className="h-4 w-4" />
+          Semester Performance <TrendingUp className="h-4 w-4" />
         </div>
       </CardFooter>
     </Card>
