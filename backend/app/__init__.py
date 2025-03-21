@@ -8,8 +8,10 @@ def create_app():
 
     from .routes.health import health_bp
     from .routes.students import students_bp
+    from .routes.stats import stats_bp
 
     app.register_blueprint(health_bp)
     app.register_blueprint(students_bp)
+    app.register_blueprint(stats_bp)
 
     return app

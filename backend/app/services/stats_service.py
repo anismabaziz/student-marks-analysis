@@ -1,16 +1,10 @@
-from flask import Flask, request, jsonify
-from app.supabase_client import supabase
-from flask_cors import CORS
+from flask import request, jsonify
+from ..supabase_client import supabase
 import pandas as pd
 import numpy as np
 
-app = Flask(__name__)
 
-CORS(app)
-
-
-@app.route("/students/stats", methods=["GET"])
-def get_stats():
+def find_students_stats():
     module = request.args.get("module")
     table = request.args.get("table")
     if not module:
@@ -62,8 +56,7 @@ def get_stats():
     )
 
 
-@app.route("/students/top-performing", methods=["GET"])
-def get_top_performing_students():
+def find_top_performing_students():
     module = request.args.get("module")
     table = request.args.get("table")
     if not module:
@@ -81,8 +74,7 @@ def get_top_performing_students():
     return jsonify({"module": module, "students": response.data})
 
 
-@app.route("/students/lowest-performing", methods=["GET"])
-def get_lowest_perfoming_students():
+def find_lowest_perfoming_students():
     module = request.args.get("module")
     table = request.args.get("table")
     if not module:
@@ -100,8 +92,7 @@ def get_lowest_perfoming_students():
     return jsonify({"module": module, "students": response.data})
 
 
-@app.route("/students/grades-distribution", methods=["GET"])
-def get_grades_distribution():
+def find_grades_distribution():
     table = request.args.get("table")
     if not table:
         return jsonify({"error": "Please provide a table name"}), 400
@@ -138,8 +129,7 @@ def get_grades_distribution():
     return jsonify({"bins": bins, "counts": counts.tolist()})
 
 
-@app.route("/students/modules-averages", methods=["GET"])
-def get_modules_averages():
+def find_modules_averages():
     table = request.args.get("table")
     if not table:
         return jsonify({"error": "Please provide a table name"}), 400
@@ -181,25 +171,3 @@ def get_modules_averages():
     averages_dict_arr = [{"name": col, "average": avg} for col, avg in averages.items()]
 
     return jsonify({"averages": averages_dict_arr})
-
-
-@app.route("/students/tables", methods=["GET"])
-def get_analysis_tables():
-    response = supabase.rpc("get_analysis_tables").execute()
-    return jsonify({"tables": response.data})
-
-
-@app.route("/students/relevant-cols", methods=["GET"])
-def get_relevant_cols():
-    table = request.args.get("table")
-    if not table:
-        return jsonify({"error": "Please provide a table name"}), 400
-    response = supabase.table(f"{table}_mappings").select("*").execute()
-    cols = response.data
-    unwanted_words = ["credit_ue", "moyenne_ue", "credits"]
-    relevant_cols = [
-        col
-        for col in cols
-        if not any(word in col["db_name"] for word in unwanted_words)
-    ]
-    return {"mappings": relevant_cols}

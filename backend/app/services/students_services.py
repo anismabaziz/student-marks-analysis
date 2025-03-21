@@ -2,7 +2,7 @@ from ..supabase_client import supabase
 from flask import request, jsonify
 
 
-def get_students_data():
+def find_students_data():
     query = request.args.get("query")
     page = int(request.args.get("page", 1))
     limit = int(request.args.get("limit", 10))
@@ -33,9 +33,29 @@ def get_students_data():
     )
 
 
-def get_students_mapping():
+def find_students_mapping():
     table = request.args.get("table")
     if not table:
         return jsonify({"error": "Please provide a table name"}), 400
     response = supabase.table(table_name=table).select("*").execute()
     return jsonify({"mappings": response.data})
+
+
+def find_analysis_tables():
+    response = supabase.rpc("get_analysis_tables").execute()
+    return jsonify({"tables": response.data})
+
+
+def find_relevant_cols():
+    table = request.args.get("table")
+    if not table:
+        return jsonify({"error": "Please provide a table name"}), 400
+    response = supabase.table(f"{table}_mappings").select("*").execute()
+    cols = response.data
+    unwanted_words = ["credit_ue", "moyenne_ue", "credits"]
+    relevant_cols = [
+        col
+        for col in cols
+        if not any(word in col["db_name"] for word in unwanted_words)
+    ]
+    return {"mappings": relevant_cols}
