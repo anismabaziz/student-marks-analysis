@@ -12,3 +12,5 @@ class Config:
     DB_HOST = os.getenv("host")
     DB_PORT = os.getenv("port")
     DB_NAME = os.getenv("dbname")
+    SQLALCHEMY_DATABASE_URI = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?sslmode=require"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False

@@ -1,10 +1,19 @@
 from flask import Flask
 from flask_cors import CORS
+from app.config.settings import Config
+from .extensions import db, migrate
 
 
 def create_app():
     app = Flask(__name__)
     CORS(app)
+
+    from .models.tables import Table
+    from .models.mappings import Mapping
+
+    app.config.from_object(Config)
+    db.init_app(app)
+    migrate.init_app(app, db)
 
     from .routes.health import health_bp
     from .routes.students import students_bp
