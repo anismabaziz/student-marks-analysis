@@ -2,15 +2,19 @@ from flask import jsonify
 from app.utils.text import fix_text_order, remove_newlines, reshape_arabic
 from app.utils.dataframe import extract_name
 from app.utils.llm import generate_titles
+from app.utils.tables import gen_mappings, gen_schema, gen_table_query
+from app.extensions import db
 import pandas as pd
 import pdfplumber
+from sqlalchemy import Table, MetaData, text
+from app.models.tables import TableName
+from app.models.mappings import Mapping
 
 
 def parse_pdf(path, file_name):
     all_data = []
     i = 0
     csv_path = path.replace("pdf", "csv")
-    print(csv_path)
 
     with pdfplumber.open(path) as pdf:
         for page_num, page in enumerate(pdf.pages, start=1):
@@ -39,6 +43,40 @@ def parse_pdf(path, file_name):
     df.to_csv(csv_path, index=False, quoting=1, sep=",", header=False)
     df = pd.read_csv(csv_path)
     df["Name"] = df["Name"].apply(extract_name)
-    df.to_csv(csv_path, index=False, quoting=1, sep=",")
 
-    return jsonify({"message": "Pdf parsed successfully"})
+    mappings = gen_mappings(df)
+    schema = gen_schema(mappings, df)
+    table_name = f"analysis_{file_name}"
+    table_name = table_name.replace(".pdf", "").lower()
+
+    query = gen_table_query(table_name, schema)
+    df.columns = [mappings[col] for col in df.columns]
+
+    # creating table
+    db.session.execute(text(query))
+    db.session.commit()
+    # inserting data
+    data = df.to_dict(orient="records")
+    metadata = MetaData()
+    table = Table(table_name, metadata, autoload_with=db.engine)
+    with db.session.begin():
+        db.session.execute(table.insert(), data)
+
+    # create table
+    new_table = TableName(
+        db_name=table_name,
+        name=table_name.replace("_", " "),
+        valid=False,
+    )
+    db.session.add(new_table)
+    db.session.commit()
+
+    # create mappings
+    mappings_data = [
+        {"name": name, "db_name": mappings[name], "table_id": new_table.id}
+        for name in mappings
+    ]
+    db.session.bulk_insert_mappings(Mapping, mappings_data)
+    db.session.commit()
+
+    return jsonify({"message": "File processed successfully"})

@@ -8,7 +8,7 @@ def create_app():
     app = Flask(__name__)
     CORS(app)
 
-    from .models.tables import Table
+    from .models.tables import TableName
     from .models.mappings import Mapping
 
     app.config.from_object(Config)

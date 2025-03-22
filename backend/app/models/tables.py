@@ -3,7 +3,7 @@ from app import db
 from sqlalchemy.dialects.postgresql import UUID
 
 
-class Table(db.Model):
+class TableName(db.Model):
     __tablename__ = "tables"
 
     id = db.Column(
@@ -14,8 +14,8 @@ class Table(db.Model):
         nullable=False,
     )
     name = db.Column(db.Text, nullable=False)
-    dbname = db.Column(db.Text, nullable=False)
+    db_name = db.Column(db.Text, nullable=False)
     valid = db.Column(db.Boolean, default=False, nullable=False)
 
     def __repr__(self):
-        return f"<Table {self.name}>"
+        return f"<TableName {self.name}>"

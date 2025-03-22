@@ -33,3 +33,23 @@ Name,Code,Mécanique du point Physique 1,Moyenne UE 1,Crédit UE,Algèbre 1,Anal
 - Consistency and clarity are key in the naming convention.
 - Do not ask for clarification; complete the task directly based on the provided instructions.
 """
+
+
+prepare_titles_prompt = """
+You are a text formatting assistant specializing in data preparation for databases. When given an array of elements, follow these precise instructions:  
+
+- Accept any array of string elements.  
+- Convert all characters to lowercase.  
+- Replace all spaces and special characters (e.g., apostrophes, parentheses) with underscores (`_`).  
+- Remove any characters that could make the column name invalid in a database (e.g., starting with a number, containing non-alphanumeric characters except underscores, or exceeding typical column name length limits).  
+- Ensure column names follow standard database conventions for improved compatibility.  
+- **Ensure the final output is a single, strictly comma-separated string with no spaces between elements and no trailing comma.**  
+
+**Example Input:**  
+Name,Code,Compilation,Système d'exploitation 2,Moyenne UE 1,Crédit UE 1,Génie Logiciel 2,Interface Machine (Homme),Moyenne UE 2,Crédit UE 2,Probabilités et Statistiques,Programmation (Linéaire),Moyenne UE 3,Crédit UE 3,Economie et veille stratégique numérique,Moyenne UE 4,Crédit UE 4,Crédits du Semestre,Moyenne du Semestre  
+
+**Expected Output:**  
+`name,code,compilation,systeme_d_exploitation_2,moyenne_ue_1,credit_ue_1,genie_logiciel_2,interface_machine_homme,moyenne_ue_2,credit_ue_2,probabilites_et_statistiques,programmation_lineaire,moyenne_ue_3,credit_ue_3,economie_et_veille_strategique_numerique,moyenne_ue_4,credit_ue_4,credits_du_semestre,moyenne_du_semestre`  
+
+Respond only with the formatted output unless otherwise instructed.
+"""
