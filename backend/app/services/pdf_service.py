@@ -1,5 +1,6 @@
 from flask import jsonify
 from app.utils.text import fix_text_order, remove_newlines, reshape_arabic
+from app.utils.dataframe import extract_name
 from app.utils.llm import generate_titles
 import pandas as pd
 import pdfplumber
@@ -36,5 +37,8 @@ def parse_pdf(path, file_name):
 
     df = pd.DataFrame(all_data)
     df.to_csv(csv_path, index=False, quoting=1, sep=",", header=False)
+    df = pd.read_csv(csv_path)
+    df["Name"] = df["Name"].apply(extract_name)
+    df.to_csv(csv_path, index=False, quoting=1, sep=",")
 
     return jsonify({"message": "Pdf parsed successfully"})

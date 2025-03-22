@@ -1,4 +1,8 @@
-.venv
+.venv/
 .env
-__pycache__
-uploads
+
+
+__pycache__/
+**/__pycache__/
+
+uploads/
