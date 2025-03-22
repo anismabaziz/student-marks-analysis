@@ -14,3 +14,4 @@ class Config:
     DB_NAME = os.getenv("dbname")
     SQLALCHEMY_DATABASE_URI = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?sslmode=require"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
