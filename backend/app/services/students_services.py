@@ -1,34 +1,36 @@
 from ..supabase_client import supabase
 from flask import request, jsonify
+from app.extensions import metadata, db
+from app.models.mappings import Mapping
+from app.models.tables import TableName
 
 
-def find_students_data():
-    query = request.args.get("query")
-    page = int(request.args.get("page", 1))
-    limit = int(request.args.get("limit", 10))
-    table = request.args.get("table")
-
+def find_students(table_id, query, page, limit):
+    table = TableName.query.get(table_id)
     if not table:
-        return jsonify({"error": "Please provide a table name"}), 400
+        return jsonify({"error": "Table not found"}), 404
 
-    start = (page - 1) * limit
-    end = start + limit - 1
-
-    query_builder = supabase.table(table).select("*", count="exact")
+    table_model = metadata.tables[table.db_name]
+    query_builder = db.session.query(table_model)
 
     if query:
-        query_builder = query_builder.ilike("name", f"%{query}%")
+        query_builder = query_builder.filter(table_model.c.name.ilike(f"%{query}%"))
 
-    students_response = query_builder.range(start, end).execute()
-    mappings_response = supabase.table(f"{table}_mappings").select("*").execute()
+    start = (page - 1) * limit
+    students_response = query_builder.offset(start).limit(limit).all()
+    students = [dict(row._mapping) for row in students_response]
+
+    students_count = db.session.query(table_model).count()
+    mappings_response = Mapping.query.filter(Mapping.table_id == table.id).all()
+    mappings = [mapping.to_dict() for mapping in mappings_response]
 
     return jsonify(
         {
-            "records": students_response.data,
+            "records": students,
             "page": page,
             "limit": limit,
-            "total_records": students_response.count,
-            "mappings": mappings_response.data,
+            "total_records": students_count,
+            "mappings": mappings,
         }
     )
 

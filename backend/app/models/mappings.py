@@ -20,3 +20,11 @@ class Mapping(db.Model):
     )
 
     table = db.relationship("TableName", backref=db.backref("mapping", uselist=False))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "table_id": self.table_id,
+            "db_name": self.db_name,
+            "name": self.name,
+        }
