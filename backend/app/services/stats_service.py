@@ -1,40 +1,24 @@
-from flask import request, jsonify
-from ..supabase_client import supabase
+from flask import jsonify
+from app.models.tables import TableName
+from app.extensions import metadata, db
 import pandas as pd
 import numpy as np
+from sqlalchemy import desc
+from app.models.mappings import Mapping
 
 
-def find_students_stats():
-    module = request.args.get("module")
-    table = request.args.get("table")
-    if not module:
-        return jsonify({"error": "Please provide a module name"}), 400
-
+def find_students_stats(table_id, module):
+    table = TableName.query.get(table_id)
     if not table:
-        return jsonify({"error": "Please provide a table name"}), 400
+        return jsonify({"error": "Table not found"}), 404
 
-    all_records = []
-    batch_size = 1000
-    start = 0
+    table_model = metadata.tables[table.db_name]
+    students_response = db.session.query(table_model).all()
+    students_dict = [dict(row._mapping) for row in students_response]
+    students_count = db.session.query(table_model).count()
 
-    while True:
-        response = (
-            supabase.table(table_name=table)
-            .select("*")
-            .range(start, start + batch_size - 1)
-            .execute()
-        )
-
-        if response.data:
-            all_records.extend(response.data)
-            if len(response.data) < batch_size:
-                break
-            start += batch_size
-        else:
-            break
-
-    data = pd.DataFrame(all_records)
-    all_students = len(data)
+    data = pd.DataFrame(students_dict)
+    all_students = students_count
 
     if module not in data.columns:
         return jsonify({"error": f"Column '{module}' not found"}), 400
@@ -56,67 +40,46 @@ def find_students_stats():
     )
 
 
-def find_top_performing_students():
-    module = request.args.get("module")
-    table = request.args.get("table")
-    if not module:
-        return jsonify({"error": "Please provide a column name"}), 400
+def find_top_performing_students(table_id, module):
+    table = TableName.query.get(table_id)
     if not table:
-        return jsonify({"error": "Please provide a table name"}), 400
+        return jsonify({"error": "Table not found"}), 404
+    table_model = metadata.tables[table.db_name]
+
+    response = db.session.query(table_model).order_by(desc(module)).limit(5).all()
+    students = [dict(row._mapping) for row in response]
+
+    return jsonify({"module": module, "students": students})
+
+
+def find_lowest_perfoming_students(table_id, module):
+    table = TableName.query.get(table_id)
+    if not table:
+        return jsonify({"error": "Table not found"}), 404
+    table_model = metadata.tables[table.db_name]
 
     response = (
-        supabase.table(table_name=table)
-        .select("*")
-        .order(column=module, desc=True)
+        db.session.query(table_model)
+        .where(table_model.c[module] > 1)
+        .order_by(module)
         .limit(5)
-        .execute()
+        .all()
     )
-    return jsonify({"module": module, "students": response.data})
+    students = [dict(row._mapping) for row in response]
+    return jsonify({"module": module, "students": students})
 
 
-def find_lowest_perfoming_students():
-    module = request.args.get("module")
-    table = request.args.get("table")
-    if not module:
-        return jsonify({"error": "Please provide a column name"}), 400
+def find_grades_distribution(table_id):
+    table = TableName.query.get(table_id)
     if not table:
-        return jsonify({"error": "Please provide a table name"}), 400
-    response = (
-        supabase.table(table_name=table)
-        .select("*")
-        .neq(module, 0)
-        .order(module, desc=False)
-        .limit(5)
-        .execute()
-    )
-    return jsonify({"module": module, "students": response.data})
+        return jsonify({"error": "Table not found"}), 404
 
+    table_model = metadata.tables[table.db_name]
+    students_response = db.session.query(table_model).all()
+    students_dict = [dict(row._mapping) for row in students_response]
 
-def find_grades_distribution():
-    table = request.args.get("table")
-    if not table:
-        return jsonify({"error": "Please provide a table name"}), 400
-    all_records = []
-    batch_size = 1000
-    start = 0
+    data = pd.DataFrame(students_dict)
 
-    while True:
-        response = (
-            supabase.table(table_name=table)
-            .select("*")
-            .range(start, start + batch_size - 1)
-            .execute()
-        )
-
-        if response.data:
-            all_records.extend(response.data)
-            if len(response.data) < batch_size:
-                break
-            start += batch_size
-        else:
-            break
-
-    data = pd.DataFrame(all_records)
     moyennes_semestre = data["moyenne_du_semestre"].values
     bin_edges = np.arange(0, 18, 2)
     i = 0
@@ -129,44 +92,31 @@ def find_grades_distribution():
     return jsonify({"bins": bins, "counts": counts.tolist()})
 
 
-def find_modules_averages():
-    table = request.args.get("table")
+def find_modules_averages(table_id):
+    table = TableName.query.get(table_id)
     if not table:
-        return jsonify({"error": "Please provide a table name"}), 400
+        return jsonify({"error": "Table not found"}), 404
 
-    all_records = []
-    batch_size = 1000
-    start = 0
+    table_model = metadata.tables[table.db_name]
+    students_response = db.session.query(table_model).all()
+    students_dict = [dict(row._mapping) for row in students_response]
 
-    while True:
-        response = (
-            supabase.table(table_name=table)
-            .select("*")
-            .range(start, start + batch_size - 1)
-            .execute()
-        )
+    mappings_response = Mapping.query.filter(Mapping.table_id == table_id)
+    mappings = [mapping.to_dict() for mapping in mappings_response]
 
-        if response.data:
-            all_records.extend(response.data)
-            if len(response.data) < batch_size:
-                break
-            start += batch_size
-        else:
-            break
+    if not mappings:
+        return jsonify({"error": "Mappings not found"}), 404
 
-    response = supabase.table(f"{table}_mappings").select("*").execute()
-    cols = response.data
-
-    data = pd.DataFrame(all_records)
+    data = pd.DataFrame(students_dict)
     averages = data.select_dtypes("float64", "int64").mean().round(2)
 
     unwanted_words = ["credit_ue", "moyenne_ue", "credits", "name", "code"]
-    relevant_cols = [
-        col
-        for col in cols
-        if not any(word in col["db_name"] for word in unwanted_words)
+    relevant_mappings = [
+        mapping
+        for mapping in mappings
+        if not any(word in mapping["db_name"] for word in unwanted_words)
     ]
-    columns_to_include = [col["db_name"] for col in relevant_cols]
+    columns_to_include = [col["db_name"] for col in relevant_mappings]
     averages = averages[columns_to_include]
     averages_dict_arr = [{"name": col, "average": avg} for col, avg in averages.items()]
 
