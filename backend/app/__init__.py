@@ -2,11 +2,14 @@ from flask import Flask
 from flask_cors import CORS
 from app.config.settings import Config
 from .extensions import db, migrate, metadata
+from flasgger import Swagger
 
 
 def create_app():
     app = Flask(__name__)
     CORS(app)
+
+    _swagger = Swagger(app, template_file="swagger_config.json")
 
     from .models.tables import TableName
     from .models.mappings import Mapping

@@ -1,0 +1,13 @@
+tags:
+  - Health
+summary: Health Check
+description: Check if the API is running
+responses:
+  200:
+    description: API is healthy
+    schema:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK

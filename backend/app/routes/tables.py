@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.services.tables_service import find_tables, set_table_valid, find_valid_tables
 
+
 tables_bp = Blueprint("tables", __name__)
 
 

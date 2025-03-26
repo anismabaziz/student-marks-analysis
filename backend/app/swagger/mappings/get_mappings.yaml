@@ -1,0 +1,55 @@
+tags:
+  - Mappings
+summary: Get Mappings
+description: Gets column mappings for a certain table
+parameters:
+  - in: query
+    name: table_id
+    type: string
+    required: true
+    description: Table id
+    example: 6cad1aa2-7fdf-4b0e-879f-9e91631b2fcf
+responses:
+  200:
+    description: Successful response
+    schema:
+      type: object
+      properties:
+        mappings:
+          type: array
+          description: Array of column mappings
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: ID of the mapping
+                example: 6cad1aa2-7fdf-4b0e-879f-9e91631b2fcf
+              name:
+                type: string
+                description: Name of the column
+                example: Analyse 1
+              db_name:
+                type: string
+                description: Database valid name of the column
+                example: analyse_1
+              table_id:
+                type: string
+                description: Table id for which the column belongs to
+                example: 6cad1aa2-7fdf-4b0e-879f-9e91631b2fcf
+  404:
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Not found error
+          example: Mappings not found
+  400:
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Bad request
+          example: Table id must be included"
