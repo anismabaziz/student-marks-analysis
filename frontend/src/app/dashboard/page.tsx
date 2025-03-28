@@ -9,7 +9,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { getTableNames } from "@/services/students";
+import { getTables } from "@/services/tables";
 import { Skeleton } from "@/components/ui/skeleton";
 import useTableStore from "@/store/table-store";
 import { useEffect } from "react";
@@ -17,49 +17,47 @@ import useStatsStore from "@/store/class-stats-store";
 import StudentsCharts from "./charts/students-charts";
 
 export default function Dashboard() {
-  const tableNamesQuery = useQuery({
-    queryKey: ["table-names"],
-    queryFn: getTableNames,
+  const tablesQuery = useQuery({
+    queryKey: ["tables"],
+    queryFn: getTables,
   });
 
   const { setModule } = useStatsStore();
-  const { tableName, setTableName } = useTableStore();
+  const { tableID, setTableID } = useTableStore();
 
   useEffect(() => {
-    if (tableNamesQuery.data) {
-      setTableName(tableNamesQuery.data.tables[0].table_name);
+    if (tablesQuery.data) {
+      setTableID(tablesQuery.data.tables[0].id);
     }
-  }, [tableNamesQuery.data, setTableName]);
+  }, [tablesQuery.data, setTableID]);
 
   return (
     <div className="container mx-auto py-10 space-y-5 px-5">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold">Student Grades Dashboard</h1>
-        {tableNamesQuery.data && (
+        {tablesQuery.data && (
           <Select
             onValueChange={(value) => {
-              setTableName(value);
+              setTableID(value);
               setModule("moyenne_du_semestre");
             }}
-            value={tableName}
+            value={tableID}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {tableNamesQuery.data.tables.map((table, idx) => {
+              {tablesQuery.data.tables.map((table, idx) => {
                 return (
-                  <SelectItem value={table.table_name} key={idx}>
-                    {table.table_name}
+                  <SelectItem value={table.id} key={idx}>
+                    {table.name}
                   </SelectItem>
                 );
               })}
             </SelectContent>
           </Select>
         )}
-        {tableNamesQuery.isLoading && (
-          <Skeleton className="w-[180px] h-[30px]" />
-        )}
+        {tablesQuery.isLoading && <Skeleton className="w-[180px] h-[30px]" />}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ClassStats />

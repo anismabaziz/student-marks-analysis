@@ -1,6 +1,7 @@
 import useSearchStore from "@/store/search-store";
 import { useQuery } from "@tanstack/react-query";
-import { getStudentsTable, getRelevantCols } from "@/services/students";
+import { getStudents } from "@/services/students";
+import { getRelevantMappings } from "@/services/mappings";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import useTableStore from "@/store/table-store";
 import { DataTable } from "./data-table";
@@ -11,40 +12,35 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
+import { Mapping } from "@/types/db";
 
 export default function AllStudents() {
   const queryClient = useQueryClient();
-  const { tableName } = useTableStore();
+  const { tableID } = useTableStore();
   const searchState = useSearchStore();
 
-  const studentsTableQuery = useQuery({
-    queryKey: ["students", searchState.page, tableName],
+  const studentsQuery = useQuery({
+    queryKey: ["students", searchState.page, tableID],
     queryFn: () =>
-      getStudentsTable(tableName, searchState.searchTerm, searchState.page),
-    enabled: !!tableName,
+      getStudents(tableID, searchState.searchTerm, searchState.page),
+    enabled: !!tableID,
   });
 
-  const relevantColsQuery = useQuery({
-    queryKey: ["relevant-cols", tableName],
-    queryFn: () => getRelevantCols(tableName),
-    enabled: !!tableName,
+  const relevantMappingsQuery = useQuery({
+    queryKey: ["relevant-mappings", tableID],
+    queryFn: () => getRelevantMappings(tableID),
+    enabled: !!tableID,
   });
 
-  const [cols, setCols] = useState<
-    {
-      id: string;
-      db_name: string;
-      name: string;
-    }[]
-  >([]);
+  const [mappings, setMappings] = useState<Mapping[]>([]);
 
   useEffect(() => {
-    if (relevantColsQuery.data) {
-      setCols(relevantColsQuery.data.mappings);
+    if (relevantMappingsQuery.data) {
+      setMappings(relevantMappingsQuery.data.relevant_mappings);
     }
-  }, [relevantColsQuery.data]);
+  }, [relevantMappingsQuery.data]);
 
-  const columns = generateColumns(cols);
+  const columns = generateColumns(mappings);
 
   return (
     <Card>
@@ -63,28 +59,28 @@ export default function AllStudents() {
               onChange={(e) => {
                 searchState.setSearchTerm(e.target.value);
                 queryClient.invalidateQueries({
-                  queryKey: ["students", searchState.page, tableName],
+                  queryKey: ["students", searchState.page, tableID],
                 });
               }}
             />
           </div>
         </div>
-        {studentsTableQuery.data && relevantColsQuery.data && (
-          <DataTable columns={columns} data={studentsTableQuery.data.records} />
+        {studentsQuery.data && relevantMappingsQuery.data && (
+          <DataTable columns={columns} data={studentsQuery.data.students} />
         )}
-        {(studentsTableQuery.isLoading ||
-          relevantColsQuery.isLoading ||
-          !studentsTableQuery.data ||
-          !relevantColsQuery.data) && (
+        {(studentsQuery.isLoading ||
+          relevantMappingsQuery.isLoading ||
+          !studentsQuery.data ||
+          !relevantMappingsQuery.data) && (
           <Skeleton className="w-full h-[400px] rounded" />
         )}
         <div className="flex justify-between gap-4 items-center">
-          {studentsTableQuery.data && (
+          {studentsQuery.data && (
             <div className="text-muted-foreground text-sm">
-              Total Students {studentsTableQuery.data.total_records}
+              Total Students {studentsQuery.data.total_students}
             </div>
           )}
-          {(studentsTableQuery.isLoading || !studentsTableQuery.data) && (
+          {(studentsQuery.isLoading || !studentsQuery.data) && (
             <Skeleton className="h-10 w-[100px]" />
           )}
 

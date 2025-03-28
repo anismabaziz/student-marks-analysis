@@ -7,9 +7,9 @@ import {
 } from "@/components/ui/select";
 import {
   getTopPerformingStudents,
-  getRelevantCols,
   getLowestPerformingStudents,
-} from "@/services/students";
+} from "@/services/stats";
+import { getRelevantMappings } from "@/services/mappings";
 import { useQuery } from "@tanstack/react-query";
 import useTableStore from "@/store/table-store";
 import usePerformanceStore from "@/store/performance-store";
@@ -19,47 +19,47 @@ import LowestPerformingTable from "./lowest-performing-table";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PerformanceBySubject() {
-  const { tableName } = useTableStore();
+  const { tableID } = useTableStore();
   const { module, setModule } = usePerformanceStore();
 
   const topPerformingTableQuery = useQuery({
-    queryKey: ["top_perfoming", module, tableName],
-    queryFn: () => getTopPerformingStudents(tableName, module),
-    enabled: !!tableName && !!module,
+    queryKey: ["top-perfoming", module, tableID],
+    queryFn: () => getTopPerformingStudents(tableID, module),
+    enabled: !!tableID && !!module,
   });
 
   const lowestPerformingTableQuery = useQuery({
-    queryKey: ["lowest_performing", module, tableName],
-    queryFn: () => getLowestPerformingStudents(tableName, module),
-    enabled: !!tableName && !!module,
+    queryKey: ["lowest_performing", module, tableID],
+    queryFn: () => getLowestPerformingStudents(tableID, module),
+    enabled: !!tableID && !!module,
   });
 
-  const relevantColsQuery = useQuery({
-    queryKey: ["relevant-cols", tableName],
-    queryFn: () => getRelevantCols(tableName),
-    enabled: !!tableName,
+  const relevantMappingsQuery = useQuery({
+    queryKey: ["relevant-cols", tableID],
+    queryFn: () => getRelevantMappings(tableID),
+    enabled: !!tableID,
   });
 
   useEffect(() => {
-    if (relevantColsQuery.data) {
+    if (relevantMappingsQuery.data) {
       setModule(
-        relevantColsQuery.data.mappings.filter(
+        relevantMappingsQuery.data.relevant_mappings.filter(
           (mapping) => mapping.db_name != "name" && mapping.db_name != "code"
         )[0].db_name
       );
     }
-  }, [relevantColsQuery.data, setModule]);
+  }, [relevantMappingsQuery.data, setModule]);
 
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        {relevantColsQuery.data && (
+        {relevantMappingsQuery.data && (
           <Select value={module} onValueChange={(value) => setModule(value)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {relevantColsQuery.data.mappings
+              {relevantMappingsQuery.data.relevant_mappings
                 .filter(
                   (col) =>
                     col.db_name !== "name" &&
@@ -76,7 +76,7 @@ export default function PerformanceBySubject() {
             </SelectContent>
           </Select>
         )}
-        {(relevantColsQuery.isLoading || !relevantColsQuery.data) && (
+        {(relevantMappingsQuery.isLoading || !relevantMappingsQuery.data) && (
           <Skeleton className="w-[180px] h-[30px]" />
         )}
       </div>
@@ -86,7 +86,7 @@ export default function PerformanceBySubject() {
           <TopPerformingTable
             students={topPerformingTableQuery.data?.students}
             module={
-              relevantColsQuery.data?.mappings.find(
+              relevantMappingsQuery.data?.relevant_mappings.find(
                 (mapping) => mapping.db_name === module
               )?.name as string
             }
@@ -99,7 +99,7 @@ export default function PerformanceBySubject() {
           <LowestPerformingTable
             students={lowestPerformingTableQuery.data?.students}
             module={
-              relevantColsQuery.data?.mappings.find(
+              relevantMappingsQuery.data?.relevant_mappings.find(
                 (mapping) => mapping.db_name === module
               )?.name as string
             }

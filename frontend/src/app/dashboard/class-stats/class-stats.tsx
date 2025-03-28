@@ -10,37 +10,37 @@ import ClassStatsCard from "./class-stats-card";
 import { useQuery } from "@tanstack/react-query";
 import { getStats } from "@/services/stats";
 import useStatsStore from "@/store/class-stats-store";
-import { getRelevantCols } from "@/services/students";
+import { getRelevantMappings } from "@/services/mappings";
 import useTableStore from "@/store/table-store";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ClassStats() {
   const { module, setModule } = useStatsStore();
-  const { tableName } = useTableStore();
+  const { tableID } = useTableStore();
 
-  const relevantColsQuery = useQuery({
-    queryKey: ["relevant-cols", tableName],
-    queryFn: () => getRelevantCols(tableName),
-    enabled: !!tableName,
+  const relevantMappingsQuery = useQuery({
+    queryKey: ["relevant-cols", tableID],
+    queryFn: () => getRelevantMappings(tableID),
+    enabled: !!tableID,
   });
 
   const statsQuery = useQuery({
-    queryKey: ["stats", module, tableName],
-    queryFn: () => getStats(tableName, module),
-    enabled: !!tableName,
+    queryKey: ["stats", module, tableID],
+    queryFn: () => getStats(tableID, module),
+    enabled: !!tableID,
   });
 
   return (
     <Card>
       <CardHeader className="flex items-center justify-between">
         <h3 className="text-xl font-semibold">Class Statistics</h3>
-        {relevantColsQuery.data && (
+        {relevantMappingsQuery.data && (
           <Select value={module} onValueChange={(value) => setModule(value)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {relevantColsQuery.data.mappings
+              {relevantMappingsQuery.data.relevant_mappings
                 .filter(
                   (col) => col.db_name !== "name" && col.db_name !== "code"
                 )
@@ -54,7 +54,7 @@ export default function ClassStats() {
             </SelectContent>
           </Select>
         )}
-        {(relevantColsQuery.isLoading || !relevantColsQuery.data) && (
+        {(relevantMappingsQuery.isLoading || !relevantMappingsQuery.data) && (
           <Skeleton className="w-[180px] h-[30px]" />
         )}
       </CardHeader>
@@ -65,7 +65,7 @@ export default function ClassStats() {
               metric={"Average"}
               value={statsQuery.data.average_grade}
               quality={
-                relevantColsQuery.data?.mappings.find(
+                relevantMappingsQuery.data?.relevant_mappings.find(
                   (mapping) => mapping.db_name === module
                 )?.name as string
               }

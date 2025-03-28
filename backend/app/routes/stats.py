@@ -11,7 +11,7 @@ from ..services.stats_service import (
 stats_bp = Blueprint("stats", __name__)
 
 
-@stats_bp.route("/students/stats", methods=["GET"])
+@stats_bp.route("/stats", methods=["GET"])
 def get_stats():
     module = request.args.get("module")
     table_id = request.args.get("table_id")
@@ -23,7 +23,7 @@ def get_stats():
     return find_students_stats(table_id, module), 200
 
 
-@stats_bp.route("/students/top-performing", methods=["GET"])
+@stats_bp.route("/stats/top-performing", methods=["GET"])
 def get_top_performing():
     module = request.args.get("module")
     table_id = request.args.get("table_id")
@@ -34,7 +34,7 @@ def get_top_performing():
     return find_top_performing_students(table_id, module), 200
 
 
-@stats_bp.route("/students/lowest-performing", methods=["GET"])
+@stats_bp.route("/stats/lowest-performing", methods=["GET"])
 def get_lowest_performing():
     module = request.args.get("module")
     table_id = request.args.get("table_id")
@@ -45,7 +45,7 @@ def get_lowest_performing():
     return find_lowest_perfoming_students(table_id, module), 200
 
 
-@stats_bp.route("/students/grades-distribution", methods=["GET"])
+@stats_bp.route("/stats/grades-distribution", methods=["GET"])
 def get_grades_distribution():
     table_id = request.args.get("table_id")
     if not table_id:
@@ -53,7 +53,7 @@ def get_grades_distribution():
     return find_grades_distribution(table_id), 200
 
 
-@stats_bp.route("/students/modules-averages", methods=["GET"])
+@stats_bp.route("/stats/modules-averages", methods=["GET"])
 def get_modules_averages():
     table_id = request.args.get("table_id")
     if not table_id:

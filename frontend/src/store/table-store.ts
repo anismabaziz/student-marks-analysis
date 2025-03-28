@@ -1,13 +1,13 @@
 import { create } from "zustand";
 
 type StatsState = {
-  tableName: string;
-  setTableName: (module: string) => void;
+  tableID: string;
+  setTableID: (module: string) => void;
 };
 
 export const useTableStore = create<StatsState>((set) => ({
-  tableName: "",
-  setTableName: (tableName) => set({ tableName }),
+  tableID: "",
+  setTableID: (tableID) => set({ tableID }),
 }));
 
 export default useTableStore;

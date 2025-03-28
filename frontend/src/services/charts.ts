@@ -4,11 +4,11 @@ interface IGetGradesDistribution {
   counts: number[];
   bins: [number, number][];
 }
-export async function getGradeDistribution(table: string) {
+export async function getGradeDistribution(table_id: string) {
   return (
     await axiosClient.get<IGetGradesDistribution>(
-      "/students/grades-distribution",
-      { params: { table } }
+      "/stats/grades-distribution",
+      { params: { table_id } }
     )
   ).data;
 }
@@ -16,10 +16,10 @@ export async function getGradeDistribution(table: string) {
 interface IGetModulesAverages {
   averages: { average: number; name: string }[];
 }
-export async function getModulesAverages(table: string) {
+export async function getModulesAverages(table_id: string) {
   return (
-    await axiosClient.get<IGetModulesAverages>("/students/modules-averages", {
-      params: { table },
+    await axiosClient.get<IGetModulesAverages>("/stats/modules-averages", {
+      params: { table_id },
     })
   ).data;
 }
