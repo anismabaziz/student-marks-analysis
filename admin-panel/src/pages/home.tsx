@@ -1,3 +1,4 @@
+import Navbar from "@/ux/navbar";
 import PageCard from "@/ux/page-card";
 import { FileText, Key, Table } from "lucide-react";
 
@@ -30,10 +31,13 @@ const homeContent = [
 
 export default function Home() {
   return (
-    <div className="container mx-auto py-4 grid grid-cols-3 gap-4">
-      {homeContent.map((content) => {
-        return <PageCard content={content} key={content.id} />;
-      })}
-    </div>
+    <>
+      <Navbar />
+      <div className="container mx-auto py-4 grid grid-cols-3 gap-4">
+        {homeContent.map((content) => {
+          return <PageCard content={content} key={content.id} />;
+        })}
+      </div>
+    </>
   );
 }

@@ -31,6 +31,17 @@ def set_table_valid(table_id):
     return jsonify({"message": "Table set valid successfully"}), 200
 
 
+def set_table_invalid(table_id):
+    table = TableName.query.get(table_id)
+    if table is None:
+        return jsonify({"error": "Table not found"}), 404
+
+    table.valid = False
+    db.session.commit()
+
+    return jsonify({"message": "Table set invalid successfully"}), 200
+
+
 def find_valid_tables():
     is_valid = True
     tables = TableName.query.filter(TableName.valid == is_valid).all()
