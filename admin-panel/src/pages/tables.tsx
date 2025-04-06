@@ -6,7 +6,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Divide, Search } from "lucide-react";
 import { Link } from "react-router";
 import { Input } from "@/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -89,53 +89,56 @@ export default function Tables() {
               </Button>
             </div>
             {/* View tables */}
-            <div className="border rounded">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Db Name</TableHead>
-                    <TableHead>Valid</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tablesQuery.data &&
-                    tablesQuery.data.tables.map((table) => {
-                      return (
-                        <TableRow>
-                          <TableCell>{table.name}</TableCell>
-                          <TableCell>{table.db_name}</TableCell>
-                          <TableCell>
-                            {table.valid ? validBadge : invalidBadge}
-                          </TableCell>
-                          <TableCell>
-                            {table.valid ? (
-                              <Button
-                                className="bg-red-500 cursor-pointer"
-                                onClick={() =>
-                                  rejectTableMutation.mutate(table.id)
-                                }
-                              >
-                                Reject
-                              </Button>
-                            ) : (
-                              <Button
-                                className="bg-green-500 cursor-pointer"
-                                onClick={() =>
-                                  approveTableMutation.mutate(table.id)
-                                }
-                              >
-                                Approve
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
-            </div>
+            {tablesQuery.isLoading && <div>Loading....</div>}
+            {tablesQuery.data && (
+              <div className="border rounded">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Db Name</TableHead>
+                      <TableHead>Valid</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tablesQuery.data &&
+                      tablesQuery.data.tables.map((table) => {
+                        return (
+                          <TableRow>
+                            <TableCell>{table.name}</TableCell>
+                            <TableCell>{table.db_name}</TableCell>
+                            <TableCell>
+                              {table.valid ? validBadge : invalidBadge}
+                            </TableCell>
+                            <TableCell>
+                              {table.valid ? (
+                                <Button
+                                  className="bg-red-500 cursor-pointer"
+                                  onClick={() =>
+                                    rejectTableMutation.mutate(table.id)
+                                  }
+                                >
+                                  Reject
+                                </Button>
+                              ) : (
+                                <Button
+                                  className="bg-green-500 cursor-pointer"
+                                  onClick={() =>
+                                    approveTableMutation.mutate(table.id)
+                                  }
+                                >
+                                  Approve
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

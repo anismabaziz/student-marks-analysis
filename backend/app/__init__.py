@@ -13,6 +13,7 @@ def create_app():
 
     from .models.tables import TableName
     from .models.mappings import Mapping
+    from .models.api_keys import APIKey
 
     app.config.from_object(Config)
     db.init_app(app)
@@ -27,6 +28,7 @@ def create_app():
     from .routes.pdf import pdf_bp
     from .routes.tables import tables_bp
     from .routes.mappings import mappings_bp
+    from .routes.api_keys import keys_bp
 
     app.register_blueprint(health_bp)
     app.register_blueprint(students_bp)
@@ -34,5 +36,6 @@ def create_app():
     app.register_blueprint(pdf_bp)
     app.register_blueprint(tables_bp)
     app.register_blueprint(mappings_bp)
+    app.register_blueprint(keys_bp)
 
     return app
