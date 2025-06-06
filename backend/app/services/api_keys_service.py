@@ -4,7 +4,7 @@ import uuid
 
 
 def find_api_keys():
-    response = supabase.table("api_keys").select("*").execute()
+    response = supabase.table("analysis_api_keys").select("*").execute()
 
     if response.data is None:
         return jsonify({"error": "API keys not found"}), 404
@@ -20,7 +20,7 @@ def add_api_key(name):
 
     # Insert into the table
     response = (
-        supabase.table("api_keys")
+        supabase.table("analysis_api_keys")
         .insert({"name": name, "key": generated_key})
         .execute()
     )
@@ -33,25 +33,31 @@ def add_api_key(name):
 
 def update_key_invalid(key_id):
     # Check if the key exists
-    get_response = supabase.table("api_keys").select("*").eq("id", key_id).execute()
+    get_response = (
+        supabase.table("analysis_api_keys").select("*").eq("id", key_id).execute()
+    )
 
     if get_response.data is None:
         return jsonify({"error": "API key not found"}), 404
 
     # Update the is_active field
-    supabase.table("api_keys").update({"is_active": False}).eq("id", key_id).execute()
+    supabase.table("analysis_api_keys").update({"is_active": False}).eq(
+        "id", key_id
+    ).execute()
 
     return jsonify({"message": "API key invalidated."}), 200
 
 
 def remove_api_key(key_id):
     # Check if the API key exists
-    get_response = supabase.table("api_keys").select("*").eq("id", key_id).execute()
+    get_response = (
+        supabase.table("analysis_api_keys").select("*").eq("id", key_id).execute()
+    )
 
     if get_response.data is None:
         return jsonify({"error": "API key not found"}), 404
 
     # Delete the API key
-    supabase.table("api_keys").delete().eq("id", key_id).execute()
+    supabase.table("analysis_api_keys").delete().eq("id", key_id).execute()
 
     return jsonify({"message": "API key deleted."}), 200

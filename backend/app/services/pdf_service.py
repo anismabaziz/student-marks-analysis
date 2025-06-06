@@ -102,7 +102,7 @@ def parse_pdf(path, file_name):
 
     # create table
     new_table_resp = (
-        supabase.table("tables")
+        supabase.table("analysis_tables")
         .insert(
             {
                 "db_name": table_name,
@@ -122,6 +122,6 @@ def parse_pdf(path, file_name):
     batch_size = 500
     for i in range(0, len(mappings_data), batch_size):
         batch = mappings_data[i : i + batch_size]
-        supabase.table("mappings").insert(batch).execute()
+        supabase.table("analysis_mappings").insert(batch).execute()
 
     return jsonify({"message": "File processed successfully"})

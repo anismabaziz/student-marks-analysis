@@ -6,7 +6,11 @@ from app.supabase_client import supabase
 def find_students_stats(table_id, module):
     # Step 1: Fetch the table info from the 'tables' table
     table_resp = (
-        supabase.table("tables").select("*").eq("id", table_id).single().execute()
+        supabase.table("analysis_tables")
+        .select("*")
+        .eq("id", table_id)
+        .single()
+        .execute()
     )
     if table_resp.data is None:
         return jsonify({"error": "Table not found"}), 404
@@ -53,7 +57,11 @@ def find_students_stats(table_id, module):
 def find_top_performing_students(table_id, module):
     # Step 1: Get table info
     table_resp = (
-        supabase.table("tables").select("*").eq("id", table_id).single().execute()
+        supabase.table("analysis_tables")
+        .select("*")
+        .eq("id", table_id)
+        .single()
+        .execute()
     )
     if table_resp.data is None:
         return jsonify({"error": "Table not found"}), 404
@@ -85,7 +93,11 @@ def find_top_performing_students(table_id, module):
 def find_lowest_perfoming_students(table_id, module):
     # Step 1: Get table info
     table_resp = (
-        supabase.table("tables").select("*").eq("id", table_id).single().execute()
+        supabase.table("analysis_tables")
+        .select("*")
+        .eq("id", table_id)
+        .single()
+        .execute()
     )
     if table_resp.data is None:
         return jsonify({"error": "Table not found"}), 404
@@ -117,7 +129,11 @@ def find_lowest_perfoming_students(table_id, module):
 def find_grades_distribution(table_id):
     # Step 1: Get the table info
     table_resp = (
-        supabase.table("tables").select("*").eq("id", table_id).single().execute()
+        supabase.table("analysis_tables")
+        .select("*")
+        .eq("id", table_id)
+        .single()
+        .execute()
     )
     if table_resp.data is None:
         return jsonify({"error": "Table not found"}), 404
@@ -159,7 +175,11 @@ def find_grades_distribution(table_id):
 def find_modules_averages(table_id):
     # Step 1: Get the table info
     table_resp = (
-        supabase.table("tables").select("*").eq("id", table_id).single().execute()
+        supabase.table("analysis_tables")
+        .select("*")
+        .eq("id", table_id)
+        .single()
+        .execute()
     )
     if table_resp.data is None:
         return jsonify({"error": "Table not found"}), 404
@@ -169,7 +189,10 @@ def find_modules_averages(table_id):
 
     # Step 2: Get mappings
     mappings_resp = (
-        supabase.table("mappings").select("*").eq("table_id", table_id).execute()
+        supabase.table("analysis_mappings")
+        .select("*")
+        .eq("table_id", table_id)
+        .execute()
     )
     if not mappings_resp.data:
         return jsonify({"error": "Mappings not found"}), 404

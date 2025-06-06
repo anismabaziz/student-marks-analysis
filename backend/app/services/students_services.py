@@ -5,7 +5,11 @@ from app.supabase_client import supabase
 def find_students(table_id, query, page, limit):
     # First, get the table record from the "tables" table
     table_resp = (
-        supabase.table("tables").select("*").eq("id", table_id).single().execute()
+        supabase.table("analysis_tables")
+        .select("*")
+        .eq("id", table_id)
+        .single()
+        .execute()
     )
     if table_resp.data is None:
         return jsonify({"error": "Table not found"}), 404
@@ -33,7 +37,10 @@ def find_students(table_id, query, page, limit):
 
     # Get the mappings for the table
     mappings_resp = (
-        supabase.table("mappings").select("*").eq("table_id", table_id).execute()
+        supabase.table("analysis_mappings")
+        .select("*")
+        .eq("table_id", table_id)
+        .execute()
     )
 
     mappings = mappings_resp.data

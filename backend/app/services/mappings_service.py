@@ -4,7 +4,12 @@ from app.supabase_client import supabase
 
 def find_mappings_by_table(table_id):
     # Query Supabase for mappings with the given table_id
-    response = supabase.table("mappings").select("*").eq("table_id", table_id).execute()
+    response = (
+        supabase.table("analysis_mappings")
+        .select("*")
+        .eq("table_id", table_id)
+        .execute()
+    )
 
     # If no mappings found, return 404
     if not response.data:
@@ -16,7 +21,12 @@ def find_mappings_by_table(table_id):
 
 def find_relevant_mappings(table_id):
     # Query Supabase for mappings with the given table_id
-    response = supabase.table("mappings").select("*").eq("table_id", table_id).execute()
+    response = (
+        supabase.table("analysis_mappings")
+        .select("*")
+        .eq("table_id", table_id)
+        .execute()
+    )
     mappings = response.data
 
     # If no mappings found
