@@ -6,7 +6,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { ArrowLeft, Divide, Search } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import { Link } from "react-router";
 import { Input } from "@/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -105,7 +105,7 @@ export default function Tables() {
                     {tablesQuery.data &&
                       tablesQuery.data.tables.map((table) => {
                         return (
-                          <TableRow>
+                          <TableRow key={table.id}>
                             <TableCell>{table.name}</TableCell>
                             <TableCell>{table.db_name}</TableCell>
                             <TableCell>

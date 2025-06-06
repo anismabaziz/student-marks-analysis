@@ -1,60 +1,48 @@
-from app.models.tables import TableName
-from app.extensions import db
 from flask import jsonify
+from app.supabase_client import supabase
 
 
 def find_tables():
-    tables = TableName.query.all()
-    return jsonify(
-        {
-            "tables": [
-                {
-                    "id": table.id,
-                    "db_name": table.db_name,
-                    "name": table.name,
-                    "valid": table.valid,
-                }
-                for table in tables
-            ]
-        }
-    ), 200
+    # Query Supabase for all rows in the "tables" table
+    response = supabase.table("tables").select("*").execute()
+
+    tables = response.data
+
+    return jsonify({"tables": tables}), 200
 
 
 def set_table_valid(table_id):
-    table = TableName.query.get(table_id)
-    if table is None:
+    response = (
+        supabase.table("tables").select("*").eq("id", table_id).single().execute()
+    )
+
+    if response.data is None:
         return jsonify({"error": "Table not found"}), 404
 
-    table.valid = True
-    db.session.commit()
+    supabase.table("tables").update({"valid": True}).eq("id", table_id).execute()
 
     return jsonify({"message": "Table set valid successfully"}), 200
 
 
 def set_table_invalid(table_id):
-    table = TableName.query.get(table_id)
-    if table is None:
+    response = (
+        supabase.table("tables").select("*").eq("id", table_id).single().execute()
+    )
+
+    if response.data is None:
         return jsonify({"error": "Table not found"}), 404
 
-    table.valid = False
-    db.session.commit()
+    supabase.table("tables").update({"valid": False}).eq("id", table_id).execute()
 
     return jsonify({"message": "Table set invalid successfully"}), 200
 
 
 def find_valid_tables():
-    is_valid = True
-    tables = TableName.query.filter(TableName.valid == is_valid).all()
-    return jsonify(
-        {
-            "tables": [
-                {
-                    "id": table.id,
-                    "db_name": table.db_name,
-                    "name": table.name,
-                    "valid": table.valid,
-                }
-                for table in tables
-            ]
-        }
-    )
+    response = supabase.table("tables").select("*").eq("valid", True).execute()
+
+    if response.data is None:
+        return jsonify({"error": "Tables not found"}), 404
+
+    tables = response.data
+
+    return jsonify({"tables": tables}), 200

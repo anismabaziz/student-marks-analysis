@@ -1,29 +1,18 @@
 from flask import Flask
 from flask_cors import CORS
 from app.config.settings import Config
-from .extensions import db, migrate, metadata
-from flasgger import Swagger
 
 
 def create_app():
     app = Flask(__name__)
     CORS(app)
 
-    _swagger = Swagger(app, template_file="swagger_config.json")
-
-    from .models.tables import TableName
-    from .models.mappings import Mapping
-    from .models.api_keys import APIKey
-
     app.config.from_object(Config)
-    db.init_app(app)
-    migrate.init_app(app, db)
-
-    with app.app_context():
-        metadata.reflect(bind=db.engine)
 
     from .routes.health import health_bp
+
     from .routes.students import students_bp
+
     from .routes.stats import stats_bp
     from .routes.pdf import pdf_bp
     from .routes.tables import tables_bp

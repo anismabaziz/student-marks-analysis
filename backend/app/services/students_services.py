@@ -1,34 +1,49 @@
 from flask import jsonify
-from app.extensions import metadata, db
-from app.models.mappings import Mapping
-from app.models.tables import TableName
+from app.supabase_client import supabase
 
 
 def find_students(table_id, query, page, limit):
-    table = TableName.query.get(table_id)
-    if not table:
+    # First, get the table record from the "tables" table
+    table_resp = (
+        supabase.table("tables").select("*").eq("id", table_id).single().execute()
+    )
+    if table_resp.data is None:
         return jsonify({"error": "Table not found"}), 404
 
-    table_model = metadata.tables[table.db_name]
-    query_builder = db.session.query(table_model)
+    table_data = table_resp.data
+    table_name = table_data["db_name"]
+
+    # Build the query for students in the dynamic table
+    students_query = supabase.table(table_name).select("*")
 
     if query:
-        query_builder = query_builder.filter(table_model.c.name.ilike(f"%{query}%"))
+        # Using ilike for case-insensitive partial match
+        students_query = students_query.ilike("name", f"%{query}%")
 
+    # Pagination
     start = (page - 1) * limit
-    students_response = query_builder.offset(start).limit(limit).all()
-    students = [dict(row._mapping) for row in students_response]
+    end = start + limit - 1
+    students_resp = students_query.range(start, end).execute()
 
-    students_count = db.session.query(table_model).count()
-    mappings_response = Mapping.query.filter(Mapping.table_id == table.id).all()
-    mappings = [mapping.to_dict() for mapping in mappings_response]
+    students = students_resp.data
+
+    # Get the total count of students
+    count_resp = supabase.table(table_name).select("*", count="exact").execute()
+    total_students = count_resp.count
+
+    # Get the mappings for the table
+    mappings_resp = (
+        supabase.table("mappings").select("*").eq("table_id", table_id).execute()
+    )
+
+    mappings = mappings_resp.data
 
     return jsonify(
         {
             "students": students,
             "page": page,
             "limit": limit,
-            "total_students": students_count,
+            "total_students": total_students,
             "mappings": mappings,
         }
     )

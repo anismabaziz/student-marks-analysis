@@ -3,12 +3,48 @@ from app.utils.text import fix_text_order, remove_newlines, reshape_arabic
 from app.utils.dataframe import extract_name
 from app.utils.llm import generate_titles
 from app.utils.tables import gen_mappings, gen_schema, gen_table_query
-from app.extensions import db
 import pandas as pd
 import pdfplumber
-from sqlalchemy import Table, MetaData, text
-from app.models.tables import TableName
-from app.models.mappings import Mapping
+from app.supabase_client import supabase
+import psycopg2
+from psycopg2 import sql
+from app.config.settings import Config
+
+conn_details = {
+    "dbname": Config.DB_NAME,
+    "user": Config.DB_USER,
+    "password": Config.DB_PASSWORD,
+    "host": Config.DB_HOST,
+    "port": Config.DB_PORT,
+    "sslmode": "require",
+}
+
+
+def create_table_if_not_exists(table_name, create_table_query):
+    try:
+        conn = psycopg2.connect(**conn_details)
+        cursor = conn.cursor()
+        cursor.execute(
+            sql.SQL("""
+                SELECT EXISTS (
+                    SELECT 1 FROM information_schema.tables
+                    WHERE table_name = %s
+                );
+            """),
+            [table_name.lower()],
+        )
+        table_exists = cursor.fetchone()[0]
+        if table_exists:
+            print(f"Table '{table_name}' already exists.")
+        else:
+            cursor.execute(create_table_query)
+            conn.commit()
+            print(f"Table '{table_name}' created successfully.")
+        cursor.close()
+        conn.close()
+        return True, None
+    except Exception as e:
+        return False, str(e)
 
 
 def parse_pdf(path, file_name):
@@ -53,30 +89,39 @@ def parse_pdf(path, file_name):
     df.columns = [mappings[col] for col in df.columns]
 
     # creating table
-    db.session.execute(text(query))
-    db.session.commit()
+    success, error = create_table_if_not_exists(table_name, query)
+    if not success:
+        return jsonify({"error": f"Failed to create table: {error}"}), 500
+
     # inserting data
     data = df.to_dict(orient="records")
-    metadata = MetaData()
-    table = Table(table_name, metadata, autoload_with=db.engine)
-    with db.session.begin():
-        db.session.execute(table.insert(), data)
+    batch_size = 500
+    for i in range(0, len(data), batch_size):
+        batch = data[i : i + batch_size]
+        supabase.table(table_name).insert(batch).execute()
 
     # create table
-    new_table = TableName(
-        db_name=table_name,
-        name=table_name.replace("_", " "),
-        valid=False,
+    new_table_resp = (
+        supabase.table("tables")
+        .insert(
+            {
+                "db_name": table_name,
+                "name": table_name.replace("_", " "),
+                "valid": False,
+            }
+        )
+        .execute()
     )
-    db.session.add(new_table)
-    db.session.commit()
+    new_table = new_table_resp.data[0]
 
     # create mappings
     mappings_data = [
-        {"name": name, "db_name": mappings[name], "table_id": new_table.id}
+        {"name": name, "db_name": mappings[name], "table_id": new_table["id"]}
         for name in mappings
     ]
-    db.session.bulk_insert_mappings(Mapping, mappings_data)
-    db.session.commit()
+    batch_size = 500
+    for i in range(0, len(mappings_data), batch_size):
+        batch = mappings_data[i : i + batch_size]
+        supabase.table("mappings").insert(batch).execute()
 
     return jsonify({"message": "File processed successfully"})

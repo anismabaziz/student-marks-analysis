@@ -7,6 +7,8 @@ def test_connection():
             print("✅ Connection successful!")
     except Exception as e:
         print(f"❌ Failed to connect: {e}")
+    finally:
+        engine.dispose()
 
 
 if __name__ == "__main__":

@@ -21,6 +21,7 @@ export default function Dashboard() {
     queryKey: ["tables"],
     queryFn: getTables,
   });
+  console.log(tablesQuery.data);
 
   const { setModule } = useStatsStore();
   const { tableID, setTableID } = useTableStore();
