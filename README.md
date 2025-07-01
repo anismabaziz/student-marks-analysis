@@ -1,4 +1,4 @@
-# Transcript Analyzer
+# Student Marks Analysis
 
 A powerful web application that leverages OCR (Optical Character Recognition) and Large Language Models to automatically extract and analyze student grades from PDF transcripts. Transform your academic data into actionable insights with automated parsing, comprehensive analytics, and interactive visualizations.
 
