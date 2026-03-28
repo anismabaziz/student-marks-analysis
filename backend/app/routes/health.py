@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify
 import psycopg2
 import requests
+from google import genai
 
 from app.config.settings import Config
 
@@ -51,12 +52,33 @@ def check_postgres_connection():
         return False, str(exc)
 
 
+def check_google_ai_connection():
+    try:
+        if not Config.GOOGLE_API_KEY:
+            return False, "Missing GOOGLE_API_KEY"
+
+        client = genai.Client(api_key=Config.GOOGLE_API_KEY)
+        response = client.models.generate_content(
+            model=Config.GEMINI_MODEL,
+            contents=["healthcheck"],
+            config=genai.types.GenerateContentConfig(max_output_tokens=4),
+        )
+
+        if not response.text:
+            return True, "Google AI reachable (empty text response)"
+
+        return True, "OK"
+    except Exception as exc:
+        return False, str(exc)
+
+
 @health_bp.route("/health", methods=["GET"])
 def check_health():
     supabase_ok, supabase_message = check_supabase_connection()
     postgres_ok, postgres_message = check_postgres_connection()
+    google_ai_ok, google_ai_message = check_google_ai_connection()
 
-    all_ok = supabase_ok and postgres_ok
+    all_ok = supabase_ok and postgres_ok and google_ai_ok
     status_code = 200 if all_ok else 503
 
     return (
@@ -71,6 +93,10 @@ def check_health():
                     "postgres": {
                         "ok": postgres_ok,
                         "message": postgres_message,
+                    },
+                    "google_ai": {
+                        "ok": google_ai_ok,
+                        "message": google_ai_message,
                     },
                 },
             }

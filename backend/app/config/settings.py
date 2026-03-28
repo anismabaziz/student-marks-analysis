@@ -20,3 +20,4 @@ class Config:
     SQLALCHEMY_DATABASE_URI = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?sslmode=require"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")

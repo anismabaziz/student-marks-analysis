@@ -22,9 +22,11 @@ def gen_schema(mappings, data):
 
         if is_float:
             schema.append([mappings[col], "float8"])
-        if is_int:
+        elif is_int:
             schema.append([mappings[col], "int8"])
-        if is_object:
+        elif is_object:
+            schema.append([mappings[col], "text"])
+        else:
             schema.append([mappings[col], "text"])
 
     dict_schema = dict(schema)
@@ -33,11 +35,11 @@ def gen_schema(mappings, data):
 
 def gen_table_query(table_name, schema):
     columns = ", ".join([f"{col} {dtype}" for col, dtype in schema.items()])
+    unique_code_constraint = ",\n    UNIQUE(code)" if "code" in schema else ""
     create_table_query = f"""
     CREATE TABLE IF NOT EXISTS {table_name} (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    {columns},
-    UNIQUE(code)
+    {columns}{unique_code_constraint}
     )
     """
     return create_table_query

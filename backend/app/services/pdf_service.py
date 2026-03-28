@@ -9,6 +9,8 @@ from app.supabase_client import supabase
 import psycopg2
 from psycopg2 import sql
 from app.config.settings import Config
+import time
+from postgrest.exceptions import APIError
 
 conn_details = {
     "dbname": Config.DB_NAME,
@@ -47,81 +49,155 @@ def create_table_if_not_exists(table_name, create_table_query):
         return False, str(e)
 
 
-def parse_pdf(path, file_name):
-    all_data = []
-    i = 0
-    csv_path = path.replace("pdf", "csv")
-
-    with pdfplumber.open(path) as pdf:
-        for page_num, page in enumerate(pdf.pages, start=1):
-            table = page.extract_table()
-            if table:
-                if i == 0:
-                    table = table[1:]
-                    table[0][0] = "Name"
-                    table[0][1] = "Code"
-                    transformed_line = fix_text_order(",".join(table[0]))
-                    llm_process_line = generate_titles(transformed_line).split(",")
-                    table[0] = remove_newlines(llm_process_line)
-                else:
-                    table = table[2:]
-                i += 1
-                reshaped_table = [
-                    [reshape_arabic(cell) for cell in row] for row in table
-                ]
-                corrected_table = [
-                    [fix_text_order(cell) if cell else "" for cell in row]
-                    for row in reshaped_table
-                ]
-                all_data.extend(corrected_table)
-
-    df = pd.DataFrame(all_data)
-    df.to_csv(csv_path, index=False, quoting=1, sep=",", header=False)
-    df = pd.read_csv(csv_path)
-    df["Name"] = df["Name"].apply(extract_name)
-
-    mappings = gen_mappings(df)
-    schema = gen_schema(mappings, df)
-    table_name = f"analysis_{file_name}"
-    table_name = table_name.replace(".pdf", "").lower()
-
-    query = gen_table_query(table_name, schema)
-    df.columns = [mappings[col] for col in df.columns]
-
-    # creating table
-    success, error = create_table_if_not_exists(table_name, query)
-    if not success:
-        return jsonify({"error": f"Failed to create table: {error}"}), 500
-
-    # inserting data
-    data = df.to_dict(orient="records")
-    batch_size = 500
-    for i in range(0, len(data), batch_size):
-        batch = data[i : i + batch_size]
-        supabase.table(table_name).insert(batch).execute()
-
-    # create table
-    new_table_resp = (
-        supabase.table("analysis_tables")
-        .insert(
-            {
-                "db_name": table_name,
-                "name": table_name.replace("_", " "),
-                "valid": False,
-            }
+def table_exists(table_name):
+    try:
+        conn = psycopg2.connect(**conn_details)
+        cursor = conn.cursor()
+        cursor.execute(
+            sql.SQL(
+                """
+                SELECT EXISTS (
+                    SELECT 1 FROM information_schema.tables
+                    WHERE table_name = %s
+                );
+                """
+            ),
+            [table_name.lower()],
         )
-        .execute()
-    )
-    new_table = new_table_resp.data[0]
+        exists = cursor.fetchone()[0]
+        cursor.close()
+        conn.close()
+        return exists
+    except Exception:
+        return False
 
-    # create mappings
-    mappings_data = [
-        {"name": name, "db_name": mappings[name], "table_id": new_table["id"]}
-        for name in mappings
-    ]
-    batch_size = 500
-    for i in range(0, len(mappings_data), batch_size):
-        batch = mappings_data[i : i + batch_size]
-        supabase.table("analysis_mappings").insert(batch).execute()
 
-    return jsonify({"message": "File processed successfully"})
+def get_unique_table_name(base_table_name):
+    if not table_exists(base_table_name):
+        return base_table_name
+
+    suffix = int(time.time())
+    candidate = f"{base_table_name}_{suffix}"
+    while table_exists(candidate):
+        suffix += 1
+        candidate = f"{base_table_name}_{suffix}"
+    return candidate
+
+
+def insert_with_schema_cache_retry(table_name, batch, retries=6, delay_seconds=1):
+    last_error = None
+    for _ in range(retries):
+        try:
+            supabase.table(table_name).insert(batch).execute()
+            return True, None
+        except APIError as exc:
+            error_code = getattr(exc, "code", None)
+            error_message = str(exc)
+            is_schema_cache_miss = (
+                error_code in {"PGRST205", "PGRST204"}
+                or "schema cache" in error_message.lower()
+            )
+            if is_schema_cache_miss:
+                last_error = error_message
+                time.sleep(delay_seconds)
+                continue
+            return False, error_message
+        except Exception as exc:
+            return False, str(exc)
+
+    return False, last_error or "Could not insert rows after retrying schema cache refresh"
+
+
+def parse_pdf(path, file_name):
+    try:
+        all_data = []
+        i = 0
+        csv_path = path.replace("pdf", "csv")
+
+        with pdfplumber.open(path) as pdf:
+            for page_num, page in enumerate(pdf.pages, start=1):
+                table = page.extract_table()
+                if table:
+                    if i == 0:
+                        table = table[1:]
+                        table[0][0] = "Name"
+                        table[0][1] = "Code"
+                        transformed_line = fix_text_order(",".join(table[0]))
+                        llm_process_line = generate_titles(transformed_line).split(",")
+                        table[0] = remove_newlines(llm_process_line)
+                    else:
+                        table = table[2:]
+                    i += 1
+                    reshaped_table = [
+                        [reshape_arabic(cell) for cell in row] for row in table
+                    ]
+                    corrected_table = [
+                        [fix_text_order(cell) if cell else "" for cell in row]
+                        for row in reshaped_table
+                    ]
+                    all_data.extend(corrected_table)
+
+        df = pd.DataFrame(all_data)
+        df.to_csv(csv_path, index=False, quoting=1, sep=",", header=False)
+        df = pd.read_csv(csv_path)
+        df["Name"] = df["Name"].apply(extract_name)
+
+        mappings = gen_mappings(df)
+        schema = gen_schema(mappings, df)
+        table_name = f"analysis_{file_name}".replace(".pdf", "").lower()
+        table_name = get_unique_table_name(table_name)
+
+        query = gen_table_query(table_name, schema)
+        df.columns = [mappings[col] for col in df.columns]
+
+        # creating table
+        success, error = create_table_if_not_exists(table_name, query)
+        if not success:
+            return jsonify({"error": f"Failed to create table: {error}"}), 500
+
+        # inserting data
+        data = df.to_dict(orient="records")
+        batch_size = 500
+        for i in range(0, len(data), batch_size):
+            batch = data[i : i + batch_size]
+            inserted, insert_error = insert_with_schema_cache_retry(table_name, batch)
+            if not inserted:
+                return jsonify({"error": f"Failed to insert students data: {insert_error}"}), 500
+
+        # create table
+        new_table_resp = (
+            supabase.table("analysis_tables")
+            .insert(
+                {
+                    "db_name": table_name,
+                    "name": table_name.replace("_", " "),
+                    "valid": False,
+                }
+            )
+            .execute()
+        )
+        new_table = new_table_resp.data[0]
+
+        # create mappings
+        mappings_data = [
+            {"name": name, "db_name": mappings[name], "table_id": new_table["id"]}
+            for name in mappings
+        ]
+        batch_size = 500
+        for i in range(0, len(mappings_data), batch_size):
+            batch = mappings_data[i : i + batch_size]
+            supabase.table("analysis_mappings").insert(batch).execute()
+
+        return jsonify({"message": "File processed successfully"})
+    except Exception as exc:
+        error_message = str(exc)
+        if "does not support pdf input" in error_message.lower():
+            return (
+                jsonify(
+                    {
+                        "error": f'Cannot read "{file_name}" (this model does not support pdf input). Please use a text-capable model.'
+                    }
+                ),
+                400,
+            )
+        return jsonify({"error": f"Failed to process file: {error_message}"}), 500
