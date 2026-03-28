@@ -6,9 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import useTableStore from "@/store/table-store";
 import { DataTable } from "./data-table";
 import { generateColumns } from "./columns";
-import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Mapping } from "@/types/db";
 
 export default function AllStudents() {
   const { tableID } = useTableStore();
@@ -26,14 +24,7 @@ export default function AllStudents() {
     enabled: !!tableID,
   });
 
-  const [mappings, setMappings] = useState<Mapping[]>([]);
-
-  useEffect(() => {
-    if (relevantMappingsQuery.data) {
-      setMappings(relevantMappingsQuery.data.relevant_mappings);
-    }
-  }, [relevantMappingsQuery.data]);
-
+  const mappings = relevantMappingsQuery.data?.relevant_mappings ?? [];
   const columns = generateColumns(mappings);
 
   console.log(columns);

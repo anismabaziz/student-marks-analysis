@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+
+# Node / frontend
+**/node_modules/
+**/dist/
+**/.vite/
+
+# Python
+**/.venv/
+**/venv/
+**/__pycache__/
+**/*.pyc
+
+# Environment files
+**/.env
+**/.env.*
+
+# Notebook and local caches
+**/.ipynb_checkpoints/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build/coverage artifacts
+**/coverage/
+**/.coverage
