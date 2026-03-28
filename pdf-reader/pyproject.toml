@@ -1,0 +1,20 @@
+[project]
+name = "student-marks-analysis-pdf-reader"
+version = "0.1.0"
+description = "PDF parsing utilities for student marks analysis"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pandas",
+    "pymupdf",
+    "python-dotenv",
+]
+
+[dependency-groups]
+notebook = [
+    "ipykernel",
+    "ipython",
+]
+
+[tool.uv]
+package = false
