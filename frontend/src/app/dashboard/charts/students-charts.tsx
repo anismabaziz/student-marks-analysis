@@ -1,10 +1,12 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getGradeDistribution, getModulesAverages } from "@/services/charts";
 import { getRelevantMappings } from "@/services/mappings";
+import { getStudents } from "@/services/students";
 import { useQuery } from "@tanstack/react-query";
 import GradeDistribution from "./grade-distribution";
 import useTableStore from "@/store/table-store";
 import SubjectAverages from "./subject-averages";
+import ModuleInsights from "./module-insights";
 
 export default function StudentsCharts() {
   const { tableID } = useTableStore();
@@ -21,6 +23,11 @@ export default function StudentsCharts() {
   const relevantColsQuery = useQuery({
     queryKey: ["relevant-mappings", tableID],
     queryFn: () => getRelevantMappings(tableID),
+    enabled: !!tableID,
+  });
+  const studentsQuery = useQuery({
+    queryKey: ["students", tableID, "analytics"],
+    queryFn: () => getStudents(tableID, ""),
     enabled: !!tableID,
   });
 
@@ -52,6 +59,14 @@ export default function StudentsCharts() {
               <SubjectAverages averages={transformedAverages} />
             )}
         </div>
+        {studentsQuery.data && relevantColsQuery.data && (
+          <div className="mt-4">
+            <ModuleInsights
+              students={studentsQuery.data.students as Record<string, unknown>[]}
+              mappings={relevantColsQuery.data.relevant_mappings}
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
